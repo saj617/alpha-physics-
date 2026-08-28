@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* All existing styles remain exactly the same */
         :root {
             --primary: #6366f1;
             --primary-dark: #4f46e5;
@@ -409,7 +408,6 @@
             min-height: 60px;
         }
 
-        /* Sync Button Styles */
         .sync-btn {
             background: linear-gradient(135deg, #22c55e, #16a34a);
             border: none;
@@ -467,7 +465,6 @@
             border: 1px solid #ef4444;
         }
 
-        /* Auto-sync status bar - NEW */
         .auto-sync-status {
             position: fixed;
             bottom: 20px;
@@ -537,7 +534,6 @@
         .correct { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
         .incorrect { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
 
-        /* Editable MCQ styles */
         .mcq-item.editable {
             cursor: pointer;
         }
@@ -580,7 +576,6 @@
         .sub-part-table tr { cursor: pointer; transition: background 0.2s; }
         .sub-part-table tr:hover { background: rgba(255, 255, 255, 0.05); }
 
-        /* Editable table row styles */
         .sub-part-table tr.editable-row {
             cursor: pointer;
         }
@@ -596,7 +591,6 @@
             opacity: 1;
         }
 
-        /* Score edit input */
         .score-edit-input {
             background: rgba(15, 23, 42, 0.9);
             border: 1px solid var(--primary);
@@ -723,7 +717,6 @@
         .btn-info { background: #06b6d4; color: white; }
         .btn-edit { background: #8b5cf6; color: white; }
 
-        /* ===== POPUP MODAL STYLES ===== */
         .popup-overlay {
             display: none;
             position: fixed;
@@ -1060,7 +1053,6 @@
             font-style: italic;
         }
 
-        /* Edit mode toggle */
         .edit-mode-toggle {
             background: rgba(99, 102, 241, 0.2);
             border: 1px solid var(--primary);
@@ -1095,7 +1087,6 @@
             margin-left: 8px;
         }
 
-        /* Toast notification */
         .toast-notification {
             position: fixed;
             bottom: 80px;
@@ -1123,6 +1114,14 @@
         }
         .toast-notification.error {
             border-color: #ef4444;
+        }
+
+        /* Teacher-only edit elements - hidden by default for students */
+        .teacher-edit-control {
+            display: none !important;
+        }
+        .is-teacher .teacher-edit-control {
+            display: inline-flex !important;
         }
 
         @media (max-width: 768px) {
@@ -1448,7 +1447,7 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-list-check"></i> <span data-i18n="mcqTitle">MCQ ප්‍රශ්න විශ්ලේෂණය</span></h3>
-                    <button class="edit-mode-toggle" id="mcqEditToggle" onclick="toggleMCQEditMode()">
+                    <button class="edit-mode-toggle teacher-edit-control" id="mcqEditToggle" onclick="toggleMCQEditMode()">
                         <i class="fa-solid fa-pen"></i> <span id="mcqEditToggleText">Edit Mode</span>
                     </button>
                 </div>
@@ -1461,7 +1460,7 @@
         <div class="card" style="margin-bottom: 25px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-file-pen"></i> <span data-i18n="structEssayTitle">ව්‍යුහගත රචනා (Structured Essay) - විශ්ලේෂණය</span></h3>
-                <button class="edit-mode-toggle" id="structEditToggle" onclick="toggleStructEditMode()">
+                <button class="edit-mode-toggle teacher-edit-control" id="structEditToggle" onclick="toggleStructEditMode()">
                     <i class="fa-solid fa-pen"></i> <span id="structEditToggleText">Edit Mode</span>
                 </button>
             </div>
@@ -1485,7 +1484,7 @@
         <div class="card" style="margin-bottom: 25px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-book-open"></i> <span data-i18n="essayTitle">රචනා ප්‍රශ්න (Essay Questions) විශ්ලේෂණය</span></h3>
-                <button class="edit-mode-toggle" id="essayEditToggle" onclick="toggleEssayEditMode()">
+                <button class="edit-mode-toggle teacher-edit-control" id="essayEditToggle" onclick="toggleEssayEditMode()">
                     <i class="fa-solid fa-pen"></i> <span id="essayEditToggleText">Edit Mode</span>
                 </button>
             </div>
@@ -1588,6 +1587,7 @@
     let mcqEditMode = false;
     let structEditMode = false;
     let essayEditMode = false;
+    let isTeacher = false;
 
     // ===================================================
     // SAVE/LOAD FUNCTIONS
@@ -2049,6 +2049,16 @@
     // EDIT MODE UI UPDATE
     // ===================================================
     function updateEditModeUI() {
+        // Only show edit mode controls if user is a teacher
+        const teacherControls = document.querySelectorAll('.teacher-edit-control');
+        if (isTeacher) {
+            teacherControls.forEach(el => el.style.display = 'inline-flex');
+            document.body.classList.add('is-teacher');
+        } else {
+            teacherControls.forEach(el => el.style.display = 'none');
+            document.body.classList.remove('is-teacher');
+        }
+        
         const t = translations[currentLang];
         document.getElementById('mcqEditToggleText').textContent = mcqEditMode ? t.exitEditMode : t.editMode;
         document.getElementById('structEditToggleText').textContent = structEditMode ? t.exitEditMode : t.editMode;
@@ -2059,6 +2069,7 @@
     }
 
     function toggleMCQEditMode() {
+        if (!isTeacher) return;
         mcqEditMode = !mcqEditMode;
         updateEditModeUI();
         renderMCQGrid();
@@ -2068,6 +2079,7 @@
     }
 
     function toggleStructEditMode() {
+        if (!isTeacher) return;
         structEditMode = !structEditMode;
         updateEditModeUI();
         renderStructuredTable();
@@ -2077,6 +2089,7 @@
     }
 
     function toggleEssayEditMode() {
+        if (!isTeacher) return;
         essayEditMode = !essayEditMode;
         updateEditModeUI();
         renderEssayTable();
@@ -2303,6 +2316,7 @@
         document.getElementById('gatewayModal').style.display = 'none';
         document.getElementById('dashboardContent').style.display = 'block';
         isTeacherView = (role === 'Teacher');
+        isTeacher = (role === 'Teacher');
 
         const navRole = document.getElementById('navRoleText');
         const teacherPanel = document.getElementById('teacherPanel');
@@ -2319,6 +2333,12 @@
             renderAllContent();
             initDashboardElements();
             
+            // Show teacher edit controls
+            document.querySelectorAll('.teacher-edit-control').forEach(el => {
+                el.style.display = 'inline-flex';
+            });
+            document.body.classList.add('is-teacher');
+            
             initialSync();
             
         } else {
@@ -2328,6 +2348,12 @@
             studentDetailView.style.display = 'none';
             currentRole = 'student';
             loggedStudent = studentData;
+            
+            // Hide teacher edit controls
+            document.querySelectorAll('.teacher-edit-control').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.body.classList.remove('is-teacher');
             
             stopAutoSync();
             
@@ -2340,6 +2366,8 @@
             renderAllContent();
             initDashboardElements();
         }
+        
+        updateEditModeUI();
     }
 
     // ===================================================
@@ -2388,6 +2416,9 @@
             } catch (e) {}
         }
 
+        // Check if teacher is viewing - show edit controls only for teachers
+        const isTeacherViewing = isTeacher;
+
         container.innerHTML = `
             <div class="header-card">
                 <div class="student-info">
@@ -2427,11 +2458,11 @@
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                         <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-list-check"></i> MCQ ප්‍රශ්න විශ්ලේෂණය</h3>
-                        <button class="edit-mode-toggle" id="detailMcqEditToggle" onclick="toggleDetailMCQEditMode('${student.index}')">
+                        ${isTeacherViewing ? `<button class="edit-mode-toggle" id="detailMcqEditToggle" onclick="toggleDetailMCQEditMode('${student.index}')">
                             <i class="fa-solid fa-pen"></i> <span>Edit Mode</span>
-                        </button>
+                        </button>` : ''}
                     </div>
-                    <p style="font-size: 0.85rem; color: #94a3b8;">(ප්‍රශ්නය මත Click කර ප්‍රතිඵලය වෙනස් කරන්න)</p>
+                    <p style="font-size: 0.85rem; color: #94a3b8;">(ප්‍රශ්නය මත Click කර ${isTeacherViewing ? 'ප්‍රතිඵලය වෙනස් කරන්න හෝ ' : ''}විවරණය බලන්න)</p>
                     <div class="mcq-grid" id="studentDetailMcqContainer"></div>
                 </div>
             </div>
@@ -2439,9 +2470,9 @@
             <div class="card" style="margin-bottom: 25px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-file-pen"></i> ව්‍යුහගත රචනා - විශ්ලේෂණය</h3>
-                    <button class="edit-mode-toggle" id="detailStructEditToggle" onclick="toggleDetailStructEditMode('${student.index}')">
+                    ${isTeacherViewing ? `<button class="edit-mode-toggle" id="detailStructEditToggle" onclick="toggleDetailStructEditMode('${student.index}')">
                         <i class="fa-solid fa-pen"></i> <span>Edit Mode</span>
-                    </button>
+                    </button>` : ''}
                 </div>
                 <table class="sub-part-table">
                     <thead>
@@ -2461,9 +2492,9 @@
             <div class="card" style="margin-bottom: 25px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-book-open"></i> රචනා ප්‍රශ්න විශ්ලේෂණය</h3>
-                    <button class="edit-mode-toggle" id="detailEssayEditToggle" onclick="toggleDetailEssayEditMode('${student.index}')">
+                    ${isTeacherViewing ? `<button class="edit-mode-toggle" id="detailEssayEditToggle" onclick="toggleDetailEssayEditMode('${student.index}')">
                         <i class="fa-solid fa-pen"></i> <span>Edit Mode</span>
-                    </button>
+                    </button>` : ''}
                 </div>
                 <table class="sub-part-table">
                     <thead>
@@ -2496,6 +2527,7 @@
         window._detailMcqResults = studentMcqResults;
         window._detailStructuredData = studentStructuredData;
         window._detailEssayData = studentEssayData;
+        window._detailIsTeacher = isTeacherViewing;
 
         setTimeout(() => {
             const ctx = document.getElementById('studentDetailPieChart');
@@ -2520,18 +2552,20 @@
             renderDetailStructuredTable(student.index);
             renderDetailEssayTable(student.index);
             
-            // Update edit mode UI for detail view
-            const detailMcqToggle = document.getElementById('detailMcqEditToggle');
-            if (detailMcqToggle) {
-                detailMcqToggle.classList.toggle('active', window._detailMcqEditMode || false);
-            }
-            const detailStructToggle = document.getElementById('detailStructEditToggle');
-            if (detailStructToggle) {
-                detailStructToggle.classList.toggle('active', window._detailStructEditMode || false);
-            }
-            const detailEssayToggle = document.getElementById('detailEssayEditToggle');
-            if (detailEssayToggle) {
-                detailEssayToggle.classList.toggle('active', window._detailEssayEditMode || false);
+            // Update edit mode UI for detail view - only for teachers
+            if (isTeacherViewing) {
+                const detailMcqToggle = document.getElementById('detailMcqEditToggle');
+                if (detailMcqToggle) {
+                    detailMcqToggle.classList.toggle('active', window._detailMcqEditMode || false);
+                }
+                const detailStructToggle = document.getElementById('detailStructEditToggle');
+                if (detailStructToggle) {
+                    detailStructToggle.classList.toggle('active', window._detailStructEditMode || false);
+                }
+                const detailEssayToggle = document.getElementById('detailEssayEditToggle');
+                if (detailEssayToggle) {
+                    detailEssayToggle.classList.toggle('active', window._detailEssayEditMode || false);
+                }
             }
         }, 100);
 
@@ -2539,9 +2573,10 @@
     }
 
     // ===================================================
-    // DETAIL VIEW EDIT MODE TOGGLES
+    // DETAIL VIEW EDIT MODE TOGGLES (Teacher only)
     // ===================================================
     function toggleDetailMCQEditMode(index) {
+        if (!isTeacher) return;
         window._detailMcqEditMode = !window._detailMcqEditMode;
         const toggle = document.getElementById('detailMcqEditToggle');
         if (toggle) {
@@ -2557,6 +2592,7 @@
     }
 
     function toggleDetailStructEditMode(index) {
+        if (!isTeacher) return;
         window._detailStructEditMode = !window._detailStructEditMode;
         const toggle = document.getElementById('detailStructEditToggle');
         if (toggle) {
@@ -2572,6 +2608,7 @@
     }
 
     function toggleDetailEssayEditMode(index) {
+        if (!isTeacher) return;
         window._detailEssayEditMode = !window._detailEssayEditMode;
         const toggle = document.getElementById('detailEssayEditToggle');
         if (toggle) {
@@ -2595,12 +2632,13 @@
         
         const mcqData = window._detailMcqResults || MCQ_RESULTS;
         const editMode = window._detailMcqEditMode || false;
+        const isTeacherViewing = window._detailIsTeacher || false;
         
         container.innerHTML = '';
         mcqData.forEach((status, idx) => {
             const item = document.createElement('div');
             item.className = `mcq-item ${status ? 'correct' : 'incorrect'}`;
-            if (editMode) {
+            if (editMode && isTeacherViewing) {
                 item.classList.add('editable');
                 item.title = currentLang === 'si' ? 'ප්‍රතිඵලය වෙනස් කිරීමට Click කරන්න' : 'Click to toggle result';
                 item.style.cursor = 'pointer';
@@ -2612,7 +2650,7 @@
             item.innerText = idx + 1;
             item.onclick = function(e) {
                 e.stopPropagation();
-                if (editMode) {
+                if (editMode && isTeacherViewing) {
                     // Toggle MCQ result
                     const newStatus = !mcqData[idx];
                     mcqData[idx] = newStatus;
@@ -2635,18 +2673,19 @@
         
         const structData = window._detailStructuredData || JSON.parse(JSON.stringify(STRUCTURED_DATA));
         const editMode = window._detailStructEditMode || false;
+        const isTeacherViewing = window._detailIsTeacher || false;
         
         tbody.innerHTML = '';
         structData.forEach((item, idx) => {
             const tr = document.createElement('tr');
-            tr.className = editMode ? 'editable-row' : '';
-            tr.style.cursor = editMode ? 'pointer' : 'default';
-            tr.title = editMode ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : '';
+            tr.className = (editMode && isTeacherViewing) ? 'editable-row' : '';
+            tr.style.cursor = (editMode && isTeacherViewing) ? 'pointer' : 'default';
+            tr.title = (editMode && isTeacherViewing) ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : '';
             
             tr.innerHTML = `
                 <td><b>${item.question}</b></td>
                 <td>${item.subPart}</td>
-                <td>${editMode ? 
+                <td>${(editMode && isTeacherViewing) ? 
                     `<input type="number" class="score-edit-input" id="structScore_${idx}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;">` : 
                     item.score}
                 </td>
@@ -2654,7 +2693,7 @@
                 <td>${item.weakness === '-' ? '-' : `<span class="weakness-tag">${item.weakness}</span>`}</td>
             `;
             
-            if (editMode) {
+            if (editMode && isTeacherViewing) {
                 tr.onclick = function(e) {
                     if (e.target.tagName === 'INPUT') return;
                     const input = document.getElementById(`structScore_${idx}`);
@@ -2663,7 +2702,6 @@
                         input.select();
                     }
                 };
-                // Save on blur
                 tr.onblur = function() {
                     const input = document.getElementById(`structScore_${idx}`);
                     if (input) {
@@ -2679,7 +2717,6 @@
                         }
                     }
                 };
-                // Enter key to save
                 tr.onkeydown = function(e) {
                     if (e.key === 'Enter') {
                         tr.blur();
@@ -2696,29 +2733,29 @@
         
         const essayData = window._detailEssayData || JSON.parse(JSON.stringify(ESSAY_DATA));
         const editMode = window._detailEssayEditMode || false;
+        const isTeacherViewing = window._detailIsTeacher || false;
         
         tbody.innerHTML = '';
         essayData.forEach((item, idx) => {
             const tr = document.createElement('tr');
-            tr.className = editMode ? 'editable-row' : '';
-            tr.style.cursor = editMode ? 'pointer' : 'default';
-            tr.title = editMode ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : '';
+            tr.className = (editMode && isTeacherViewing) ? 'editable-row' : '';
+            tr.style.cursor = (editMode && isTeacherViewing) ? 'pointer' : 'default';
+            tr.title = (editMode && isTeacherViewing) ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : '';
             
-            // Parse score for editing
             let scoreParts = item.score.split('/').map(s => s.trim());
             let currentScore = scoreParts[0] || '0';
             let maxScore = scoreParts[1] || '15';
             
             tr.innerHTML = `
                 <td><b>${item.question}</b></td>
-                <td>${editMode ? 
+                <td>${(editMode && isTeacherViewing) ? 
                     `<input type="text" class="score-edit-input" id="essayScore_${idx}" value="${currentScore}" style="width:60px;"> / ${maxScore}` : 
                     item.score}
                 </td>
                 <td><span class="weakness-tag">${item.weakness}</span></td>
             `;
             
-            if (editMode) {
+            if (editMode && isTeacherViewing) {
                 tr.onclick = function(e) {
                     if (e.target.tagName === 'INPUT') return;
                     const input = document.getElementById(`essayScore_${idx}`);
@@ -3651,7 +3688,7 @@
         MCQ_RESULTS.forEach((status, index) => {
             const item = document.createElement('div');
             item.className = `mcq-item ${status ? 'correct' : 'incorrect'}`;
-            if (mcqEditMode) {
+            if (mcqEditMode && isTeacher) {
                 item.classList.add('editable');
                 item.title = currentLang === 'si' ? 'ප්‍රතිඵලය වෙනස් කිරීමට Click කරන්න' : 'Click to toggle result';
                 const editIndicator = document.createElement('span');
@@ -3701,15 +3738,15 @@
             const rowspan = group.length;
             group.forEach((item, idx) => {
                 const tr = document.createElement('tr');
-                tr.style.cursor = structEditMode ? 'pointer' : 'default';
-                tr.title = structEditMode ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : 
+                tr.style.cursor = (structEditMode && isTeacher) ? 'pointer' : 'default';
+                tr.title = (structEditMode && isTeacher) ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : 
                     (currentLang === 'si' ? 'විවරණය, මාර්කින් සහ ඩිස්කෂන් බැලීමට Click කරන්න' : 'Click to view marking scheme & discussion');
                 
-                if (structEditMode) {
+                if (structEditMode && isTeacher) {
                     tr.className = 'editable-row';
                 }
                 
-                if (!structEditMode) {
+                if (!structEditMode || !isTeacher) {
                     tr.onclick = function() { showStructuredPopupInMain(item.index); };
                 }
                 
@@ -3717,7 +3754,7 @@
                     tr.innerHTML = `
                         <td rowspan="${rowspan}"><b>${item.question}</b></td>
                         <td>${item.subPart}</td>
-                        <td>${structEditMode ? 
+                        <td>${(structEditMode && isTeacher) ? 
                             `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateStructScore(${item.index}, this.value)">` : 
                             item.score}
                         </td>
@@ -3727,7 +3764,7 @@
                 } else {
                     tr.innerHTML = `
                         <td>${item.subPart}</td>
-                        <td>${structEditMode ? 
+                        <td>${(structEditMode && isTeacher) ? 
                             `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateStructScore(${item.index}, this.value)">` : 
                             item.score}
                         </td>
@@ -3758,15 +3795,15 @@
         tbody.innerHTML = '';
         ESSAY_DATA.forEach((item, index) => {
             const tr = document.createElement('tr');
-            tr.style.cursor = essayEditMode ? 'pointer' : 'default';
-            tr.title = essayEditMode ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : 
+            tr.style.cursor = (essayEditMode && isTeacher) ? 'pointer' : 'default';
+            tr.title = (essayEditMode && isTeacher) ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : 
                 (currentLang === 'si' ? 'විවරණය, මාර්කින් සහ ඩිස්කෂන් බැලීමට Click කරන්න' : 'Click to view marking scheme & discussion');
             
-            if (essayEditMode) {
+            if (essayEditMode && isTeacher) {
                 tr.className = 'editable-row';
             }
             
-            if (!essayEditMode) {
+            if (!essayEditMode || !isTeacher) {
                 tr.onclick = function() { showEssayPopupInMain(index); };
             }
             
@@ -3776,7 +3813,7 @@
             
             tr.innerHTML = `
                 <td><b>${item.question}</b></td>
-                <td>${essayEditMode ? 
+                <td>${(essayEditMode && isTeacher) ? 
                     `<input type="text" class="score-edit-input" id="essayScore_${index}" value="${currentScore}" style="width:60px;" onchange="updateEssayScore(${index}, this.value)"> / ${maxScore}` : 
                     item.score}
                 </td>
@@ -3931,7 +3968,6 @@
             if (e.key === 'Escape') closePopup();
         });
         
-        // Override showToast to use the new toast system
         window.showToast = showToast;
     });
 </script>
