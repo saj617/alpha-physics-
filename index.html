@@ -1476,6 +1476,20 @@
     // ⚠️ IMPORTANT: This is the SINGLE LINE URL - DO NOT BREAK THIS LINE
     const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxiKR9cWrMhQ9upkitX4m5GY08X2Qb6Tczfwg53MjVVlEONc5n7oQZeuOBPrMbt8pCBEw/exec";
     const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KsXFkdZb_jP-D2ENwrUD3sGSwv6BZtaqHAXM8wi7OYU/export?format=csv";
+async function sendToGoogleSheet(action, data) {
+    try {
+        await fetch(GOOGLE_SHEET_API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, ...data })
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Sheet sync error:", error);
+        return { success: false, error: error.message };
+    }
+}
 
     let STUDENTS_DATABASE = [
         { index: "2026-PHYS-01", name: "කසුන් පෙරේරා", paid: true, password: "password123", class: "Grade 13", phone: "071-2345678", school: "Royal College" },
@@ -2005,6 +2019,13 @@
 
             REGISTERED_STUDENTS.push(newStudent);
             saveRegisteredStudents();
+sendToGoogleSheet("register", {
+    index: index,
+    name: name,
+    phone: phone,
+    school: school,
+    class: classVal
+});
 
             successBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${t.successRegister}`;
             successBox.style.display = 'block';
@@ -2359,6 +2380,11 @@
         if (registeredIdx !== -1) {
             REGISTERED_STUDENTS[registeredIdx].paid = !REGISTERED_STUDENTS[registeredIdx].paid;
             saveRegisteredStudents();
+           sendToGoogleSheet("updatePayment", {
+            index: index,
+            paid: REGISTERED_STUDENTS[registeredIdx]?.paid || false
+        });
+        
         } else {
             const defaultIdx = STUDENTS_DATABASE.findIndex(s => s.index === index);
             if (defaultIdx !== -1) {
