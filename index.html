@@ -537,6 +537,34 @@
         .correct { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
         .incorrect { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
 
+        /* Editable MCQ styles */
+        .mcq-item.editable {
+            cursor: pointer;
+        }
+        .mcq-item.editable:hover {
+            transform: translateY(-3px) scale(1.08);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+        }
+        .mcq-item .edit-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+            background: rgba(99, 102, 241, 0.8);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .mcq-item:hover .edit-indicator {
+            opacity: 1;
+        }
+
         .sub-part-table {
             width: 100%;
             border-collapse: collapse;
@@ -551,6 +579,38 @@
         .sub-part-table th { background: rgba(255, 255, 255, 0.05); color: #a5b4fc; }
         .sub-part-table tr { cursor: pointer; transition: background 0.2s; }
         .sub-part-table tr:hover { background: rgba(255, 255, 255, 0.05); }
+
+        /* Editable table row styles */
+        .sub-part-table tr.editable-row {
+            cursor: pointer;
+        }
+        .sub-part-table tr.editable-row:hover {
+            background: rgba(99, 102, 241, 0.15);
+        }
+        .sub-part-table tr.editable-row .edit-hint {
+            color: #94a3b8;
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+        .sub-part-table tr.editable-row:hover .edit-hint {
+            opacity: 1;
+        }
+
+        /* Score edit input */
+        .score-edit-input {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            width: 60px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .score-edit-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
 
         .weakness-tag {
             background-color: rgba(239, 68, 68, 0.25);
@@ -661,6 +721,7 @@
         .btn-warning { background: #f59e0b; color: #1e293b; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-info { background: #06b6d4; color: white; }
+        .btn-edit { background: #8b5cf6; color: white; }
 
         /* ===== POPUP MODAL STYLES ===== */
         .popup-overlay {
@@ -999,6 +1060,71 @@
             font-style: italic;
         }
 
+        /* Edit mode toggle */
+        .edit-mode-toggle {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--primary);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .edit-mode-toggle:hover {
+            background: var(--primary);
+            transform: scale(1.05);
+        }
+        .edit-mode-toggle.active {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+
+        .edit-badge {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid #22c55e;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 12px 24px;
+            z-index: 99999;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .toast-notification.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast-notification.success {
+            border-color: #22c55e;
+        }
+        .toast-notification.error {
+            border-color: #ef4444;
+        }
+
         @media (max-width: 768px) {
             .dashboard-grid { grid-template-columns: 1fr; }
             .mcq-grid { grid-template-columns: repeat(5, 1fr); }
@@ -1025,6 +1151,9 @@
 <button class="lang-switch-btn" onclick="toggleLanguage()">
     <i class="fa-solid fa-language"></i> <span id="langBtnText">English</span>
 </button>
+
+<!-- Toast Notification -->
+<div class="toast-notification" id="toastNotification"></div>
 
 <!-- Background Overlay -->
 <div class="physics-bg-overlay"></div>
@@ -1317,7 +1446,12 @@
             </div>
 
             <div class="card">
-                <h3><i class="fa-solid fa-list-check"></i> <span data-i18n="mcqTitle">MCQ ප්‍රශ්න විශ්ලේෂණය</span></h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-list-check"></i> <span data-i18n="mcqTitle">MCQ ප්‍රශ්න විශ්ලේෂණය</span></h3>
+                    <button class="edit-mode-toggle" id="mcqEditToggle" onclick="toggleMCQEditMode()">
+                        <i class="fa-solid fa-pen"></i> <span id="mcqEditToggleText">Edit Mode</span>
+                    </button>
+                </div>
                 <p style="font-size: 0.85rem; color: #94a3b8;" data-i18n="mcqSubTitle">(ප්‍රශ්නය මත Click කර විවරණය, මාර්කින් සහ ඩිස්කෂන් බලන්න | ගුරුවරුන්ට PDF/Images/Video Link/ID Update කළ හැක)</p>
                 <div class="mcq-grid" id="mcqContainer"></div>
             </div>
@@ -1325,7 +1459,12 @@
 
         <!-- Structured Essay Analysis -->
         <div class="card" style="margin-bottom: 25px;">
-            <h3><i class="fa-solid fa-file-pen"></i> <span data-i18n="structEssayTitle">ව්‍යුහගත රචනා (Structured Essay) - විශ්ලේෂණය</span></h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-file-pen"></i> <span data-i18n="structEssayTitle">ව්‍යුහගත රචනා (Structured Essay) - විශ්ලේෂණය</span></h3>
+                <button class="edit-mode-toggle" id="structEditToggle" onclick="toggleStructEditMode()">
+                    <i class="fa-solid fa-pen"></i> <span id="structEditToggleText">Edit Mode</span>
+                </button>
+            </div>
             <p style="font-size: 0.85rem; color: #94a3b8;">💡 ප්‍රශ්නය මත Click කර විවරණය, මාර්කින් සහ ඩිස්කෂන් බලන්න | ගුරුවරුන්ට PDF/Images/Video Link/ID Update කළ හැක</p>
             <table class="sub-part-table" id="structuredTable">
                 <thead>
@@ -1344,7 +1483,12 @@
 
         <!-- Essay Questions Section -->
         <div class="card" style="margin-bottom: 25px;">
-            <h3><i class="fa-solid fa-book-open"></i> <span data-i18n="essayTitle">රචනා ප්‍රශ්න (Essay Questions) විශ්ලේෂණය</span></h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-book-open"></i> <span data-i18n="essayTitle">රචනා ප්‍රශ්න (Essay Questions) විශ්ලේෂණය</span></h3>
+                <button class="edit-mode-toggle" id="essayEditToggle" onclick="toggleEssayEditMode()">
+                    <i class="fa-solid fa-pen"></i> <span id="essayEditToggleText">Edit Mode</span>
+                </button>
+            </div>
             <p style="font-size: 0.85rem; color: #94a3b8;">💡 ප්‍රශ්නය මත Click කර විවරණය, මාර්කින් සහ ඩිස්කෂන් බලන්න | ගුරුවරුන්ට PDF/Images/Video Link/ID Update කළ හැක</p>
             <table class="sub-part-table" id="essayTable">
                 <thead>
@@ -1369,7 +1513,7 @@
     <!-- Student Detail View (Hidden by default) -->
     <div id="studentDetailView" style="display: none;">
         <div class="container" style="padding: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <button class="back-to-teacher-btn" onclick="backToTeacherView()">
                     <i class="fa-solid fa-arrow-left"></i> Back to Teacher Panel
                 </button>
@@ -1439,6 +1583,13 @@
     ];
 
     // ===================================================
+    // EDIT MODE STATE
+    // ===================================================
+    let mcqEditMode = false;
+    let structEditMode = false;
+    let essayEditMode = false;
+
+    // ===================================================
     // SAVE/LOAD FUNCTIONS
     // ===================================================
     
@@ -1473,23 +1624,23 @@
     // ===================================================
     // GOOGLE SHEET INTEGRATION
     // ===================================================
-    // ⚠️ IMPORTANT: This is the SINGLE LINE URL - DO NOT BREAK THIS LINE
     const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxiKR9cWrMhQ9upkitX4m5GY08X2Qb6Tczfwg53MjVVlEONc5n7oQZeuOBPrMbt8pCBEw/exec";
     const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1KsXFkdZb_jP-D2ENwrUD3sGSwv6BZtaqHAXM8wi7OYU/export?format=csv";
-async function sendToGoogleSheet(action, data) {
-    try {
-        await fetch(GOOGLE_SHEET_API_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action, ...data })
-        });
-        return { success: true };
-    } catch (error) {
-        console.error("Sheet sync error:", error);
-        return { success: false, error: error.message };
+
+    async function sendToGoogleSheet(action, data) {
+        try {
+            await fetch(GOOGLE_SHEET_API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, ...data })
+            });
+            return { success: true };
+        } catch (error) {
+            console.error("Sheet sync error:", error);
+            return { success: false, error: error.message };
+        }
     }
-}
 
     let STUDENTS_DATABASE = [
         { index: "2026-PHYS-01", name: "කසුන් පෙරේරා", paid: true, password: "password123", class: "Grade 13", phone: "071-2345678", school: "Royal College" },
@@ -1507,7 +1658,7 @@ async function sendToGoogleSheet(action, data) {
     let isSyncing = false;
     let syncCount = 0;
     let autoSyncIntervalId = null;
-    const AUTO_SYNC_INTERVAL = 15000; // 15 seconds
+    const AUTO_SYNC_INTERVAL = 15000;
 
     function loadRegisteredStudents() {
         const saved = localStorage.getItem('alphaPhysicsStudents');
@@ -1534,7 +1685,7 @@ async function sendToGoogleSheet(action, data) {
     }
 
     // ===================================================
-    // ⭐ AUTO-SYNC FUNCTION
+    // SYNC FUNCTIONS
     // ===================================================
     async function syncFromGoogleSheetAPI() {
         if (isSyncing) return;
@@ -1548,7 +1699,6 @@ async function sendToGoogleSheet(action, data) {
         const syncTimeDisplay = document.getElementById('syncTimeDisplay');
         const syncCountDisplay = document.getElementById('syncCountDisplay');
         
-        // Update UI - Loading state
         syncBtn.disabled = true;
         syncBtnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
         syncStatusBadge.style.display = 'inline-block';
@@ -1559,7 +1709,6 @@ async function sendToGoogleSheet(action, data) {
         syncDot.style.background = '#f59e0b';
 
         try {
-            // Try Apps Script API first
             let students = null;
             let usedMethod = 'API';
             
@@ -1573,7 +1722,6 @@ async function sendToGoogleSheet(action, data) {
                 console.warn('Apps Script API failed, falling back to CSV:', apiError);
             }
 
-            // If API fails, try CSV method
             if (!students || students.length === 0) {
                 usedMethod = 'CSV';
                 const res = await fetch(GOOGLE_SHEET_CSV_URL + '?t=' + Date.now());
@@ -1601,11 +1749,9 @@ async function sendToGoogleSheet(action, data) {
             }
 
             if (students && students.length > 0) {
-                // Merge with existing registered students
                 const existingIndices = new Set(REGISTERED_STUDENTS.map(s => s.index));
                 const newStudents = students.filter(s => !existingIndices.has(s.index));
                 
-                // Update paid status for existing students
                 const studentMap = new Map(students.map(s => [s.index, s]));
                 REGISTERED_STUDENTS = REGISTERED_STUDENTS.map(s => {
                     const match = studentMap.get(s.index);
@@ -1615,7 +1761,6 @@ async function sendToGoogleSheet(action, data) {
                     return s;
                 });
                 
-                // Add new students
                 REGISTERED_STUDENTS = [...REGISTERED_STUDENTS, ...newStudents];
                 saveRegisteredStudents();
                 renderTeacherPaymentList();
@@ -1628,7 +1773,6 @@ async function sendToGoogleSheet(action, data) {
                 syncTimeDisplay.textContent = timeStr;
                 syncCountDisplay.textContent = `${syncCount}`;
                 
-                // Update UI - Success state
                 syncStatusBadge.className = 'sync-status success';
                 syncStatusBadge.textContent = '✅ Synced';
                 syncStatusText.innerHTML = '✅ Auto-sync active';
@@ -1639,7 +1783,6 @@ async function sendToGoogleSheet(action, data) {
                     showSuccess(`✅ ${newStudents.length} new students synced from Google Sheet!`);
                 }
                 
-                // Auto-hide success badge after 3 seconds
                 setTimeout(() => {
                     if (syncStatusBadge.textContent === '✅ Synced') {
                         syncStatusBadge.style.display = 'none';
@@ -1658,7 +1801,6 @@ async function sendToGoogleSheet(action, data) {
             syncDot.className = 'dot error';
             syncDot.style.background = '#ef4444';
             
-            // Reset dot after 5 seconds
             setTimeout(() => {
                 syncDot.className = 'dot active';
                 syncDot.style.background = '#22c55e';
@@ -1672,22 +1814,16 @@ async function sendToGoogleSheet(action, data) {
         }
     }
 
-    // ===================================================
-    // ⭐ START/STOP AUTO-SYNC
-    // ===================================================
     function startAutoSync() {
         if (autoSyncIntervalId) {
             clearInterval(autoSyncIntervalId);
             autoSyncIntervalId = null;
         }
         
-        // Show auto-sync status bar
         const statusBar = document.getElementById('autoSyncStatus');
         statusBar.style.display = 'flex';
         
-        // Start interval
         autoSyncIntervalId = setInterval(() => {
-            // Only sync if teacher panel is visible
             if (document.getElementById('teacherPanel').style.display === 'block') {
                 syncFromGoogleSheetAPI();
             }
@@ -1707,24 +1843,16 @@ async function sendToGoogleSheet(action, data) {
         console.log('⏹️ Auto-sync stopped');
     }
 
-    // ===================================================
-    // ⭐ MANUAL SYNC BUTTON
-    // ===================================================
     async function manualSyncFromGoogleSheet() {
         await syncFromGoogleSheetAPI();
     }
 
-    // ===================================================
-    // INITIAL SYNC ON LOGIN
-    // ===================================================
     async function initialSync() {
         try {
             await syncFromGoogleSheetAPI();
-            // Start auto-sync after initial sync
             startAutoSync();
         } catch (e) {
             console.log('Initial sync skipped:', e);
-            // Still start auto-sync even if initial fails
             startAutoSync();
         }
     }
@@ -1744,6 +1872,19 @@ async function sendToGoogleSheet(action, data) {
         const registeredEmails = new Set(REGISTERED_TEACHERS.map(t => t.email));
         const defaultTeachersList = defaultTeachers.filter(t => !registeredEmails.has(t.email));
         return [...REGISTERED_TEACHERS, ...defaultTeachersList];
+    }
+
+    // ===================================================
+    // TOAST NOTIFICATION
+    // ===================================================
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toastNotification');
+        toast.textContent = message;
+        toast.className = 'toast-notification ' + type + ' show';
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
     }
 
     // ===================================================
@@ -1809,7 +1950,14 @@ async function sendToGoogleSheet(action, data) {
             thMaxScore: "උපරිම ලකුණු",
             thWeakness: "තවදුරටත් අධ්‍යයනය කළ යුතු කොටස්",
             essayTitle: "රචනා ප්‍රශ්න විශ්ලේෂණය",
-            discussionsTitle: "ප්‍රශ්න, විවරණ සහ Video Discussions"
+            discussionsTitle: "ප්‍රශ්න, විවරණ සහ Video Discussions",
+            editMode: "සංස්කරණ මාදිලිය",
+            exitEditMode: "සංස්කරණ මාදිලියෙන් ඉවත් වන්න",
+            mcqEditHint: "MCQ ප්‍රතිඵලය වෙනස් කිරීමට Click කරන්න",
+            scoreEditHint: "ලකුණු සංස්කරණය කිරීමට Click කරන්න",
+            scoreUpdated: "ලකුණු සාර්ථකව යාවත්කාලීන කරන ලදි!",
+            mcqToggled: "MCQ ප්‍රතිඵලය සාර්ථකව වෙනස් කරන ලදි!",
+            saveSuccess: "වෙනස්කම් සාර්ථකව සුරකින ලදි!"
         },
         en: {
             portalSubtitle: "Student Performance Analytics Portal",
@@ -1868,7 +2016,14 @@ async function sendToGoogleSheet(action, data) {
             thMaxScore: "Max Score",
             thWeakness: "Areas Needing Improvement",
             essayTitle: "Essay Questions Analysis",
-            discussionsTitle: "Questions, Marking Schemes & Video Discussions"
+            discussionsTitle: "Questions, Marking Schemes & Video Discussions",
+            editMode: "Edit Mode",
+            exitEditMode: "Exit Edit Mode",
+            mcqEditHint: "Click to toggle MCQ result",
+            scoreEditHint: "Click to edit score",
+            scoreUpdated: "Score updated successfully!",
+            mcqToggled: "MCQ result toggled successfully!",
+            saveSuccess: "Changes saved successfully!"
         }
     };
 
@@ -1886,6 +2041,47 @@ async function sendToGoogleSheet(action, data) {
         });
         if (document.getElementById('teacherPanel').style.display === 'block') {
             renderTeacherPaymentList();
+        }
+        updateEditModeUI();
+    }
+
+    // ===================================================
+    // EDIT MODE UI UPDATE
+    // ===================================================
+    function updateEditModeUI() {
+        const t = translations[currentLang];
+        document.getElementById('mcqEditToggleText').textContent = mcqEditMode ? t.exitEditMode : t.editMode;
+        document.getElementById('structEditToggleText').textContent = structEditMode ? t.exitEditMode : t.editMode;
+        document.getElementById('essayEditToggleText').textContent = essayEditMode ? t.exitEditMode : t.editMode;
+        document.getElementById('mcqEditToggle').classList.toggle('active', mcqEditMode);
+        document.getElementById('structEditToggle').classList.toggle('active', structEditMode);
+        document.getElementById('essayEditToggle').classList.toggle('active', essayEditMode);
+    }
+
+    function toggleMCQEditMode() {
+        mcqEditMode = !mcqEditMode;
+        updateEditModeUI();
+        renderMCQGrid();
+        if (mcqEditMode) {
+            showToast(currentLang === 'si' ? 'MCQ සංස්කරණ මාදිලිය සක්‍රියයි. ප්‍රතිඵලය වෙනස් කිරීමට MCQ අංකය මත Click කරන්න.' : 'MCQ Edit Mode enabled. Click any MCQ number to toggle result.', 'success');
+        }
+    }
+
+    function toggleStructEditMode() {
+        structEditMode = !structEditMode;
+        updateEditModeUI();
+        renderStructuredTable();
+        if (structEditMode) {
+            showToast(currentLang === 'si' ? 'ව්‍යුහගත ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. ලකුණු වෙනස් කිරීමට පේළිය මත Click කරන්න.' : 'Structured edit mode enabled. Click any row to edit score.', 'success');
+        }
+    }
+
+    function toggleEssayEditMode() {
+        essayEditMode = !essayEditMode;
+        updateEditModeUI();
+        renderEssayTable();
+        if (essayEditMode) {
+            showToast(currentLang === 'si' ? 'රචනා ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. ලකුණු වෙනස් කිරීමට පේළිය මත Click කරන්න.' : 'Essay edit mode enabled. Click any row to edit score.', 'success');
         }
     }
 
@@ -2019,13 +2215,13 @@ async function sendToGoogleSheet(action, data) {
 
             REGISTERED_STUDENTS.push(newStudent);
             saveRegisteredStudents();
-sendToGoogleSheet("register", {
-    index: index,
-    name: name,
-    phone: phone,
-    school: school,
-    class: classVal
-});
+            sendToGoogleSheet("register", {
+                index: index,
+                name: name,
+                phone: phone,
+                school: school,
+                class: classVal
+            });
 
             successBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${t.successRegister}`;
             successBox.style.display = 'block';
@@ -2123,7 +2319,6 @@ sendToGoogleSheet("register", {
             renderAllContent();
             initDashboardElements();
             
-            // ⭐ START AUTO-SYNC FOR TEACHER
             initialSync();
             
         } else {
@@ -2134,7 +2329,6 @@ sendToGoogleSheet("register", {
             currentRole = 'student';
             loggedStudent = studentData;
             
-            // ⭐ STOP AUTO-SYNC FOR STUDENT
             stopAutoSync();
             
             document.getElementById('dispName').innerHTML = `${studentData ? studentData.name : 'Student'} (Index: ${idVal})`;
@@ -2178,6 +2372,22 @@ sendToGoogleSheet("register", {
     function renderStudentDetail(student) {
         const container = document.getElementById('studentDetailContent');
         
+        // Create a copy of MCQ results for this student
+        let studentMcqResults = [...MCQ_RESULTS];
+        let studentStructuredData = JSON.parse(JSON.stringify(STRUCTURED_DATA));
+        let studentEssayData = JSON.parse(JSON.stringify(ESSAY_DATA));
+
+        // Check if we have saved data for this student
+        const savedStudentData = localStorage.getItem(`studentData_${student.index}`);
+        if (savedStudentData) {
+            try {
+                const data = JSON.parse(savedStudentData);
+                if (data.mcq) studentMcqResults = data.mcq;
+                if (data.structured) studentStructuredData = data.structured;
+                if (data.essay) studentEssayData = data.essay;
+            } catch (e) {}
+        }
+
         container.innerHTML = `
             <div class="header-card">
                 <div class="student-info">
@@ -2215,14 +2425,24 @@ sendToGoogleSheet("register", {
                 </div>
 
                 <div class="card">
-                    <h3><i class="fa-solid fa-list-check"></i> MCQ ප්‍රශ්න විශ්ලේෂණය</h3>
-                    <p style="font-size: 0.85rem; color: #94a3b8;">(ප්‍රශ්නය මත Click කර විවරණය බලන්න)</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-list-check"></i> MCQ ප්‍රශ්න විශ්ලේෂණය</h3>
+                        <button class="edit-mode-toggle" id="detailMcqEditToggle" onclick="toggleDetailMCQEditMode('${student.index}')">
+                            <i class="fa-solid fa-pen"></i> <span>Edit Mode</span>
+                        </button>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #94a3b8;">(ප්‍රශ්නය මත Click කර ප්‍රතිඵලය වෙනස් කරන්න)</p>
                     <div class="mcq-grid" id="studentDetailMcqContainer"></div>
                 </div>
             </div>
 
             <div class="card" style="margin-bottom: 25px;">
-                <h3><i class="fa-solid fa-file-pen"></i> ව්‍යුහගත රචනා - විශ්ලේෂණය</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-file-pen"></i> ව්‍යුහගත රචනා - විශ්ලේෂණය</h3>
+                    <button class="edit-mode-toggle" id="detailStructEditToggle" onclick="toggleDetailStructEditMode('${student.index}')">
+                        <i class="fa-solid fa-pen"></i> <span>Edit Mode</span>
+                    </button>
+                </div>
                 <table class="sub-part-table">
                     <thead>
                         <tr>
@@ -2233,22 +2453,18 @@ sendToGoogleSheet("register", {
                             <th>තවදුරටත් අධ්‍යයනය කළ යුතු කොටස්</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        ${STRUCTURED_DATA.map((item, idx) => `
-                            <tr onclick="showStructuredPopupInDetail(${idx})" style="cursor:pointer;">
-                                <td><b>${item.question}</b></td>
-                                <td>${item.subPart}</td>
-                                <td>${Math.floor(Math.random() * item.maxScore)}</td>
-                                <td>${item.maxScore}</td>
-                                <td>${item.weakness === '-' ? '-' : `<span class="weakness-tag">${item.weakness}</span>`}</td>
-                            </tr>
-                        `).join('')}
+                    <tbody id="detailStructuredBody">
                     </tbody>
                 </table>
             </div>
 
             <div class="card" style="margin-bottom: 25px;">
-                <h3><i class="fa-solid fa-book-open"></i> රචනා ප්‍රශ්න විශ්ලේෂණය</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-book-open"></i> රචනා ප්‍රශ්න විශ්ලේෂණය</h3>
+                    <button class="edit-mode-toggle" id="detailEssayEditToggle" onclick="toggleDetailEssayEditMode('${student.index}')">
+                        <i class="fa-solid fa-pen"></i> <span>Edit Mode</span>
+                    </button>
+                </div>
                 <table class="sub-part-table">
                     <thead>
                         <tr>
@@ -2257,14 +2473,7 @@ sendToGoogleSheet("register", {
                             <th>දුර්වලතා</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        ${ESSAY_DATA.map((item, idx) => `
-                            <tr onclick="showEssayPopupInDetail(${idx})" style="cursor:pointer;">
-                                <td><b>${item.question}</b></td>
-                                <td>${Math.floor(Math.random() * 15)} / 15</td>
-                                <td><span class="weakness-tag">${item.weakness}</span></td>
-                            </tr>
-                        `).join('')}
+                    <tbody id="detailEssayBody">
                     </tbody>
                 </table>
             </div>
@@ -2281,6 +2490,12 @@ sendToGoogleSheet("register", {
                 `).join('')}
             </div>
         `;
+
+        // Store student data for detail view
+        window._detailStudentIndex = student.index;
+        window._detailMcqResults = studentMcqResults;
+        window._detailStructuredData = studentStructuredData;
+        window._detailEssayData = studentEssayData;
 
         setTimeout(() => {
             const ctx = document.getElementById('studentDetailPieChart');
@@ -2301,23 +2516,250 @@ sendToGoogleSheet("register", {
                 });
             }
 
-            const mcqContainer = document.getElementById('studentDetailMcqContainer');
-            if (mcqContainer) {
-                mcqContainer.innerHTML = '';
-                MCQ_RESULTS.forEach((status, index) => {
-                    const item = document.createElement('div');
-                    item.className = `mcq-item ${status ? 'correct' : 'incorrect'}`;
-                    item.innerText = index + 1;
-                    item.title = `MCQ ${index+1}: ${status ? 'Correct' : 'Incorrect'}`;
-                    item.onclick = function() {
-                        showMCQPopupInDetail(index);
-                    };
-                    mcqContainer.appendChild(item);
-                });
+            renderDetailMCQGrid(student.index);
+            renderDetailStructuredTable(student.index);
+            renderDetailEssayTable(student.index);
+            
+            // Update edit mode UI for detail view
+            const detailMcqToggle = document.getElementById('detailMcqEditToggle');
+            if (detailMcqToggle) {
+                detailMcqToggle.classList.toggle('active', window._detailMcqEditMode || false);
+            }
+            const detailStructToggle = document.getElementById('detailStructEditToggle');
+            if (detailStructToggle) {
+                detailStructToggle.classList.toggle('active', window._detailStructEditMode || false);
+            }
+            const detailEssayToggle = document.getElementById('detailEssayEditToggle');
+            if (detailEssayToggle) {
+                detailEssayToggle.classList.toggle('active', window._detailEssayEditMode || false);
             }
         }, 100);
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ===================================================
+    // DETAIL VIEW EDIT MODE TOGGLES
+    // ===================================================
+    function toggleDetailMCQEditMode(index) {
+        window._detailMcqEditMode = !window._detailMcqEditMode;
+        const toggle = document.getElementById('detailMcqEditToggle');
+        if (toggle) {
+            toggle.classList.toggle('active', window._detailMcqEditMode);
+            toggle.querySelector('span').textContent = window._detailMcqEditMode ? 
+                (currentLang === 'si' ? 'Exit Edit' : 'Exit Edit') : 
+                (currentLang === 'si' ? 'Edit Mode' : 'Edit Mode');
+        }
+        renderDetailMCQGrid(index);
+        if (window._detailMcqEditMode) {
+            showToast(currentLang === 'si' ? 'MCQ සංස්කරණ මාදිලිය සක්‍රියයි. ප්‍රතිඵලය වෙනස් කිරීමට MCQ අංකය මත Click කරන්න.' : 'MCQ Edit Mode enabled. Click any MCQ number to toggle result.', 'success');
+        }
+    }
+
+    function toggleDetailStructEditMode(index) {
+        window._detailStructEditMode = !window._detailStructEditMode;
+        const toggle = document.getElementById('detailStructEditToggle');
+        if (toggle) {
+            toggle.classList.toggle('active', window._detailStructEditMode);
+            toggle.querySelector('span').textContent = window._detailStructEditMode ? 
+                (currentLang === 'si' ? 'Exit Edit' : 'Exit Edit') : 
+                (currentLang === 'si' ? 'Edit Mode' : 'Edit Mode');
+        }
+        renderDetailStructuredTable(index);
+        if (window._detailStructEditMode) {
+            showToast(currentLang === 'si' ? 'ව්‍යුහගත ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. ලකුණු වෙනස් කිරීමට පේළිය මත Click කරන්න.' : 'Structured edit mode enabled. Click any row to edit score.', 'success');
+        }
+    }
+
+    function toggleDetailEssayEditMode(index) {
+        window._detailEssayEditMode = !window._detailEssayEditMode;
+        const toggle = document.getElementById('detailEssayEditToggle');
+        if (toggle) {
+            toggle.classList.toggle('active', window._detailEssayEditMode);
+            toggle.querySelector('span').textContent = window._detailEssayEditMode ? 
+                (currentLang === 'si' ? 'Exit Edit' : 'Exit Edit') : 
+                (currentLang === 'si' ? 'Edit Mode' : 'Edit Mode');
+        }
+        renderDetailEssayTable(index);
+        if (window._detailEssayEditMode) {
+            showToast(currentLang === 'si' ? 'රචනා ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. ලකුණු වෙනස් කිරීමට පේළිය මත Click කරන්න.' : 'Essay edit mode enabled. Click any row to edit score.', 'success');
+        }
+    }
+
+    // ===================================================
+    // DETAIL VIEW RENDER FUNCTIONS
+    // ===================================================
+    function renderDetailMCQGrid(index) {
+        const container = document.getElementById('studentDetailMcqContainer');
+        if (!container) return;
+        
+        const mcqData = window._detailMcqResults || MCQ_RESULTS;
+        const editMode = window._detailMcqEditMode || false;
+        
+        container.innerHTML = '';
+        mcqData.forEach((status, idx) => {
+            const item = document.createElement('div');
+            item.className = `mcq-item ${status ? 'correct' : 'incorrect'}`;
+            if (editMode) {
+                item.classList.add('editable');
+                item.title = currentLang === 'si' ? 'ප්‍රතිඵලය වෙනස් කිරීමට Click කරන්න' : 'Click to toggle result';
+                item.style.cursor = 'pointer';
+                const editIndicator = document.createElement('span');
+                editIndicator.className = 'edit-indicator';
+                editIndicator.innerHTML = '<i class="fa-solid fa-pen"></i>';
+                item.appendChild(editIndicator);
+            }
+            item.innerText = idx + 1;
+            item.onclick = function(e) {
+                e.stopPropagation();
+                if (editMode) {
+                    // Toggle MCQ result
+                    const newStatus = !mcqData[idx];
+                    mcqData[idx] = newStatus;
+                    window._detailMcqResults = mcqData;
+                    // Save student data
+                    saveStudentDetailData(index);
+                    renderDetailMCQGrid(index);
+                    showToast(currentLang === 'si' ? `MCQ ${idx+1} ප්‍රතිඵලය ${newStatus ? 'නිවැරදි' : 'වැරදි'} ලෙස වෙනස් කරන ලදි!` : `MCQ ${idx+1} toggled to ${newStatus ? 'Correct' : 'Incorrect'}!`, 'success');
+                } else {
+                    showMCQPopupInDetail(idx);
+                }
+            };
+            container.appendChild(item);
+        });
+    }
+
+    function renderDetailStructuredTable(index) {
+        const tbody = document.getElementById('detailStructuredBody');
+        if (!tbody) return;
+        
+        const structData = window._detailStructuredData || JSON.parse(JSON.stringify(STRUCTURED_DATA));
+        const editMode = window._detailStructEditMode || false;
+        
+        tbody.innerHTML = '';
+        structData.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = editMode ? 'editable-row' : '';
+            tr.style.cursor = editMode ? 'pointer' : 'default';
+            tr.title = editMode ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : '';
+            
+            tr.innerHTML = `
+                <td><b>${item.question}</b></td>
+                <td>${item.subPart}</td>
+                <td>${editMode ? 
+                    `<input type="number" class="score-edit-input" id="structScore_${idx}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;">` : 
+                    item.score}
+                </td>
+                <td>${item.maxScore}</td>
+                <td>${item.weakness === '-' ? '-' : `<span class="weakness-tag">${item.weakness}</span>`}</td>
+            `;
+            
+            if (editMode) {
+                tr.onclick = function(e) {
+                    if (e.target.tagName === 'INPUT') return;
+                    const input = document.getElementById(`structScore_${idx}`);
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                };
+                // Save on blur
+                tr.onblur = function() {
+                    const input = document.getElementById(`structScore_${idx}`);
+                    if (input) {
+                        const newScore = parseInt(input.value);
+                        if (!isNaN(newScore) && newScore >= 0 && newScore <= item.maxScore) {
+                            structData[idx].score = newScore;
+                            window._detailStructuredData = structData;
+                            saveStudentDetailData(index);
+                            showToast(currentLang === 'si' ? 'ලකුණු සාර්ථකව යාවත්කාලීන කරන ලදි!' : 'Score updated successfully!', 'success');
+                        } else {
+                            input.value = item.score;
+                            showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
+                        }
+                    }
+                };
+                // Enter key to save
+                tr.onkeydown = function(e) {
+                    if (e.key === 'Enter') {
+                        tr.blur();
+                    }
+                };
+            }
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderDetailEssayTable(index) {
+        const tbody = document.getElementById('detailEssayBody');
+        if (!tbody) return;
+        
+        const essayData = window._detailEssayData || JSON.parse(JSON.stringify(ESSAY_DATA));
+        const editMode = window._detailEssayEditMode || false;
+        
+        tbody.innerHTML = '';
+        essayData.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = editMode ? 'editable-row' : '';
+            tr.style.cursor = editMode ? 'pointer' : 'default';
+            tr.title = editMode ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : '';
+            
+            // Parse score for editing
+            let scoreParts = item.score.split('/').map(s => s.trim());
+            let currentScore = scoreParts[0] || '0';
+            let maxScore = scoreParts[1] || '15';
+            
+            tr.innerHTML = `
+                <td><b>${item.question}</b></td>
+                <td>${editMode ? 
+                    `<input type="text" class="score-edit-input" id="essayScore_${idx}" value="${currentScore}" style="width:60px;"> / ${maxScore}` : 
+                    item.score}
+                </td>
+                <td><span class="weakness-tag">${item.weakness}</span></td>
+            `;
+            
+            if (editMode) {
+                tr.onclick = function(e) {
+                    if (e.target.tagName === 'INPUT') return;
+                    const input = document.getElementById(`essayScore_${idx}`);
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                };
+                tr.onblur = function() {
+                    const input = document.getElementById(`essayScore_${idx}`);
+                    if (input) {
+                        const newScore = input.value.trim();
+                        if (newScore && !isNaN(newScore) && parseInt(newScore) >= 0) {
+                            essayData[idx].score = `${newScore} / ${maxScore}`;
+                            window._detailEssayData = essayData;
+                            saveStudentDetailData(index);
+                            showToast(currentLang === 'si' ? 'ලකුණු සාර්ථකව යාවත්කාලීන කරන ලදි!' : 'Score updated successfully!', 'success');
+                        } else {
+                            input.value = currentScore;
+                            showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
+                        }
+                    }
+                };
+                tr.onkeydown = function(e) {
+                    if (e.key === 'Enter') {
+                        tr.blur();
+                    }
+                };
+            }
+            tbody.appendChild(tr);
+        });
+    }
+
+    function saveStudentDetailData(index) {
+        const data = {
+            mcq: window._detailMcqResults || MCQ_RESULTS,
+            structured: window._detailStructuredData || JSON.parse(JSON.stringify(STRUCTURED_DATA)),
+            essay: window._detailEssayData || JSON.parse(JSON.stringify(ESSAY_DATA))
+        };
+        localStorage.setItem(`studentData_${index}`, JSON.stringify(data));
+        showToast(translations[currentLang].saveSuccess, 'success');
     }
 
     function backToTeacherView() {
@@ -2333,7 +2775,6 @@ sendToGoogleSheet("register", {
         renderAllContent();
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Restart auto-sync when returning to teacher view
         startAutoSync();
     }
 
@@ -2380,11 +2821,10 @@ sendToGoogleSheet("register", {
         if (registeredIdx !== -1) {
             REGISTERED_STUDENTS[registeredIdx].paid = !REGISTERED_STUDENTS[registeredIdx].paid;
             saveRegisteredStudents();
-           sendToGoogleSheet("updatePayment", {
-            index: index,
-            paid: REGISTERED_STUDENTS[registeredIdx]?.paid || false
-        });
-        
+            sendToGoogleSheet("updatePayment", {
+                index: index,
+                paid: REGISTERED_STUDENTS[registeredIdx]?.paid || false
+            });
         } else {
             const defaultIdx = STUDENTS_DATABASE.findIndex(s => s.index === index);
             if (defaultIdx !== -1) {
@@ -2438,7 +2878,7 @@ sendToGoogleSheet("register", {
         renderMCQGrid();
         updateMCQStatus();
         document.getElementById('mcqCount').value = count;
-        showSuccess(currentLang === 'si' ? `MCQ ප්‍රශ්න ${count} ක් ලෙස යාවත්කාලීන කරන ලදි!` : `MCQ questions updated to ${count}!`);
+        showToast(currentLang === 'si' ? `MCQ ප්‍රශ්න ${count} ක් ලෙස යාවත්කාලීන කරන ලදි!` : `MCQ questions updated to ${count}!`, 'success');
     }
 
     function addMCQ() {
@@ -2447,7 +2887,7 @@ sendToGoogleSheet("register", {
         renderMCQGrid();
         updateMCQStatus();
         document.getElementById('mcqCount').value = MCQ_RESULTS.length;
-        showSuccess(currentLang === 'si' ? 'නව MCQ ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New MCQ question added!');
+        showToast(currentLang === 'si' ? 'නව MCQ ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New MCQ question added!', 'success');
     }
 
     function removeLastMCQ() {
@@ -2460,7 +2900,7 @@ sendToGoogleSheet("register", {
         renderMCQGrid();
         updateMCQStatus();
         document.getElementById('mcqCount').value = MCQ_RESULTS.length;
-        showSuccess(currentLang === 'si' ? 'අවසාන MCQ ප්‍රශ්නය ඉවත් කරන ලදි!' : 'Last MCQ question removed!');
+        showToast(currentLang === 'si' ? 'අවසාන MCQ ප්‍රශ්නය ඉවත් කරන ලදි!' : 'Last MCQ question removed!', 'success');
     }
 
     function resetMCQResults() {
@@ -2469,7 +2909,7 @@ sendToGoogleSheet("register", {
             saveAllData();
             renderMCQGrid();
             updateMCQStatus();
-            showSuccess(currentLang === 'si' ? 'සියලු MCQ ප්‍රතිඵල නැවත සකසන ලදි!' : 'All MCQ results reset!');
+            showToast(currentLang === 'si' ? 'සියලු MCQ ප්‍රතිඵල නැවත සකසන ලදි!' : 'All MCQ results reset!', 'success');
         }
     }
 
@@ -2503,7 +2943,7 @@ sendToGoogleSheet("register", {
         document.getElementById('seScore').value = '';
         document.getElementById('seMaxScore').value = '';
         document.getElementById('seWeakness').value = '';
-        showSuccess(currentLang === 'si' ? 'නව ව්‍යුහගත ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New structured question added!');
+        showToast(currentLang === 'si' ? 'නව ව්‍යුහගත ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New structured question added!', 'success');
     }
 
     function addEssayQuestion() {
@@ -2522,7 +2962,7 @@ sendToGoogleSheet("register", {
         document.getElementById('eqTitle').value = '';
         document.getElementById('eqScore').value = '';
         document.getElementById('eqWeakness').value = '';
-        showSuccess(currentLang === 'si' ? 'නව රචනා ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New essay question added!');
+        showToast(currentLang === 'si' ? 'නව රචනා ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New essay question added!', 'success');
     }
 
     function addDiscussion() {
@@ -2551,7 +2991,7 @@ sendToGoogleSheet("register", {
         document.getElementById('discQuestion').value = '';
         document.getElementById('discSolution').value = '';
         document.getElementById('discVideo').value = '';
-        showSuccess(currentLang === 'si' ? 'නව විවරණයක් එකතු කරන ලදි!' : 'New discussion added!');
+        showToast(currentLang === 'si' ? 'නව විවරණයක් එකතු කරන ලදි!' : 'New discussion added!', 'success');
     }
 
     // ===================================================
@@ -2605,7 +3045,7 @@ sendToGoogleSheet("register", {
                 const match = currentContent.match(/ව්‍යුහගත ප්‍රශ්නය (\d+)/);
                 if (match) showStructuredPopupInMain(parseInt(match[1]));
             }
-            showSuccess(currentLang === 'si' ? 'ඇමුණුම ඉවත් කරන ලදි!' : 'Attachment removed!');
+            showToast(currentLang === 'si' ? 'ඇමුණුම ඉවත් කරන ලදි!' : 'Attachment removed!', 'success');
         }
     }
 
@@ -2615,7 +3055,7 @@ sendToGoogleSheet("register", {
             if (!discussion.attachments) discussion.attachments = [];
             discussion.attachments.push({ type, url, name });
             saveAllData();
-            showSuccess(currentLang === 'si' ? 'ඇමුණුම සාර්ථකව එකතු කරන ලදි!' : 'Attachment added successfully!');
+            showToast(currentLang === 'si' ? 'ඇමුණුම සාර්ථකව එකතු කරන ලදි!' : 'Attachment added successfully!', 'success');
             const currentContent = document.getElementById('popupContent').innerHTML;
             if (currentContent.includes('MCQ Question')) {
                 const mcqIndex = parseInt(currentContent.match(/MCQ Question (\d+)/)[1]) - 1;
@@ -2726,7 +3166,7 @@ sendToGoogleSheet("register", {
         if (discussion) {
             discussion.videoId = extractedId;
             saveAllData();
-            showSuccess(currentLang === 'si' ? `YouTube Video ID එක සාර්ථකව Update කරන ලදි!` : `YouTube Video ID updated successfully!`);
+            showToast(currentLang === 'si' ? `YouTube Video ID එක සාර්ථකව Update කරන ලදි!` : `YouTube Video ID updated successfully!`, 'success');
             
             const currentContent = document.getElementById('popupContent').innerHTML;
             if (currentContent.includes('MCQ Question')) {
@@ -2746,7 +3186,7 @@ sendToGoogleSheet("register", {
     }
 
     // ===================================================
-    // POPUP FUNCTIONS
+    // POPUP FUNCTIONS (Main View)
     // ===================================================
     function openPopup(content) {
         document.getElementById('popupContent').innerHTML = content;
@@ -2759,8 +3199,6 @@ sendToGoogleSheet("register", {
         document.body.style.overflow = '';
     }
 
-    // All popup functions (showMCQPopupInMain, showStructuredPopupInMain, showEssayPopupInMain, showDiscussionPopupInMain)
-    // These remain the same as before - keeping them for completeness
     function showMCQPopupInMain(index) {
         const status = MCQ_RESULTS[index];
         const statusText = status ? '✅ නිවැරදි (Correct)' : '❌ වැරදි (Incorrect)';
@@ -3032,9 +3470,12 @@ sendToGoogleSheet("register", {
         openPopup(content);
     }
 
-    // Detail view popups (same as before)
+    // ===================================================
+    // DETAIL VIEW POPUPS
+    // ===================================================
     function showMCQPopupInDetail(index) {
-        const status = MCQ_RESULTS[index];
+        const mcqData = window._detailMcqResults || MCQ_RESULTS;
+        const status = mcqData[index];
         const statusText = status ? '✅ නිවැරදි (Correct)' : '❌ වැරදි (Incorrect)';
         const statusClass = status ? 'correct' : 'incorrect';
         const discussion = DISCUSSION_DATA.find(d => d.title.includes(`MCQ Question ${index+1}`)) || DISCUSSION_DATA[0];
@@ -3077,7 +3518,8 @@ sendToGoogleSheet("register", {
     }
 
     function showStructuredPopupInDetail(index) {
-        const item = STRUCTURED_DATA[index];
+        const structData = window._detailStructuredData || JSON.parse(JSON.stringify(STRUCTURED_DATA));
+        const item = structData[index];
         const discussion = DISCUSSION_DATA.find(d => d.title.includes(item.question)) || DISCUSSION_DATA[0];
         const attachments = discussion.attachments || [];
         
@@ -3087,7 +3529,7 @@ sendToGoogleSheet("register", {
             <div class="popup-section" style="border-left-color: #06b6d4;">
                 <h4><i class="fa-solid fa-pen"></i> ප්‍රශ්නය</h4>
                 <p><b>අනු කොටස:</b> ${item.subPart}</p>
-                <p><b>ලබාගත් ලකුණු:</b> ${Math.floor(Math.random() * item.maxScore)} / ${item.maxScore}</p>
+                <p><b>ලබාගත් ලකුණු:</b> ${item.score} / ${item.maxScore}</p>
             </div>
             <div class="popup-section" style="border-left-color: #f59e0b;">
                 <h4><i class="fa-solid fa-file-lines"></i> විවරණය</h4>
@@ -3123,13 +3565,14 @@ sendToGoogleSheet("register", {
     }
 
     function showEssayPopupInDetail(index) {
-        const item = ESSAY_DATA[index];
+        const essayData = window._detailEssayData || JSON.parse(JSON.stringify(ESSAY_DATA));
+        const item = essayData[index];
         const discussion = DISCUSSION_DATA.find(d => d.title.includes(item.question)) || DISCUSSION_DATA[0];
         const attachments = discussion.attachments || [];
         
         const content = `
             <div class="popup-title"><i class="fa-solid fa-book-open" style="color: #22c55e;"></i> ${item.question}</div>
-            <div class="popup-subtitle">ලබාගත් ලකුණු: ${Math.floor(Math.random() * 15)} / 15</div>
+            <div class="popup-subtitle">ලබාගත් ලකුණු: ${item.score}</div>
             <div class="popup-section" style="border-left-color: #f59e0b;">
                 <h4><i class="fa-solid fa-file-lines"></i> විවරණය</h4>
                 <p style="white-space: pre-line;">${discussion.markingScheme || discussion.solution}</p>
@@ -3208,12 +3651,29 @@ sendToGoogleSheet("register", {
         MCQ_RESULTS.forEach((status, index) => {
             const item = document.createElement('div');
             item.className = `mcq-item ${status ? 'correct' : 'incorrect'}`;
+            if (mcqEditMode) {
+                item.classList.add('editable');
+                item.title = currentLang === 'si' ? 'ප්‍රතිඵලය වෙනස් කිරීමට Click කරන්න' : 'Click to toggle result';
+                const editIndicator = document.createElement('span');
+                editIndicator.className = 'edit-indicator';
+                editIndicator.innerHTML = '<i class="fa-solid fa-pen"></i>';
+                item.appendChild(editIndicator);
+                item.onclick = function(e) {
+                    e.stopPropagation();
+                    MCQ_RESULTS[index] = !MCQ_RESULTS[index];
+                    saveAllData();
+                    renderMCQGrid();
+                    updateMCQStatus();
+                    showToast(currentLang === 'si' ? `MCQ ${index+1} ප්‍රතිඵලය ${MCQ_RESULTS[index] ? 'නිවැරදි' : 'වැරදි'} ලෙස වෙනස් කරන ලදි!` : `MCQ ${index+1} toggled to ${MCQ_RESULTS[index] ? 'Correct' : 'Incorrect'}!`, 'success');
+                };
+            } else {
+                item.title = currentLang === 'si' ? `MCQ ${index+1}: ${status ? 'නිවැරදි' : 'වැරදි'}\nClick to view marking scheme & discussion` : `MCQ ${index+1}: ${status ? 'Correct' : 'Incorrect'}\nClick to view marking scheme & discussion`;
+                item.onclick = function(e) {
+                    e.stopPropagation();
+                    showMCQPopupInMain(index);
+                };
+            }
             item.innerText = index + 1;
-            item.title = currentLang === 'si' ? `MCQ ${index+1}: ${status ? 'නිවැරදි' : 'වැරදි'}\nClick to view marking scheme & discussion` : `MCQ ${index+1}: ${status ? 'Correct' : 'Incorrect'}\nClick to view marking scheme & discussion`;
-            item.onclick = function(e) {
-                e.stopPropagation();
-                showMCQPopupInMain(index);
-            };
             container.appendChild(item);
         });
         updateMCQStatus();
@@ -3241,23 +3701,36 @@ sendToGoogleSheet("register", {
             const rowspan = group.length;
             group.forEach((item, idx) => {
                 const tr = document.createElement('tr');
-                tr.style.cursor = 'pointer';
-                tr.title = currentLang === 'si' ? 'විවරණය, මාර්කින් සහ ඩිස්කෂන් බැලීමට Click කරන්න' : 'Click to view marking scheme & discussion';
-                tr.onclick = function() {
-                    showStructuredPopupInMain(item.index);
-                };
+                tr.style.cursor = structEditMode ? 'pointer' : 'default';
+                tr.title = structEditMode ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : 
+                    (currentLang === 'si' ? 'විවරණය, මාර්කින් සහ ඩිස්කෂන් බැලීමට Click කරන්න' : 'Click to view marking scheme & discussion');
+                
+                if (structEditMode) {
+                    tr.className = 'editable-row';
+                }
+                
+                if (!structEditMode) {
+                    tr.onclick = function() { showStructuredPopupInMain(item.index); };
+                }
+                
                 if (idx === 0) {
                     tr.innerHTML = `
                         <td rowspan="${rowspan}"><b>${item.question}</b></td>
                         <td>${item.subPart}</td>
-                        <td>${item.score}</td>
+                        <td>${structEditMode ? 
+                            `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateStructScore(${item.index}, this.value)">` : 
+                            item.score}
+                        </td>
                         <td>${item.maxScore}</td>
                         <td>${item.weakness === '-' ? '-' : `<span class="weakness-tag">${item.weakness}</span>`}</td>
                     `;
                 } else {
                     tr.innerHTML = `
                         <td>${item.subPart}</td>
-                        <td>${item.score}</td>
+                        <td>${structEditMode ? 
+                            `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateStructScore(${item.index}, this.value)">` : 
+                            item.score}
+                        </td>
                         <td>${item.maxScore}</td>
                         <td>${item.weakness === '-' ? '-' : `<span class="weakness-tag">${item.weakness}</span>`}</td>
                     `;
@@ -3267,24 +3740,67 @@ sendToGoogleSheet("register", {
         });
     }
 
+    function updateStructScore(index, value) {
+        const newScore = parseInt(value);
+        if (!isNaN(newScore) && newScore >= 0 && newScore <= STRUCTURED_DATA[index].maxScore) {
+            STRUCTURED_DATA[index].score = newScore;
+            saveAllData();
+            showToast(translations[currentLang].scoreUpdated, 'success');
+        } else {
+            showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
+            document.getElementById(`structScore_${index}`).value = STRUCTURED_DATA[index].score;
+        }
+    }
+
     function renderEssayTable() {
         const tbody = document.getElementById('essayBody');
         if (!tbody) return;
         tbody.innerHTML = '';
         ESSAY_DATA.forEach((item, index) => {
             const tr = document.createElement('tr');
-            tr.style.cursor = 'pointer';
-            tr.title = currentLang === 'si' ? 'විවරණය, මාර්කින් සහ ඩිස්කෂන් බැලීමට Click කරන්න' : 'Click to view marking scheme & discussion';
-            tr.onclick = function() {
-                showEssayPopupInMain(index);
-            };
+            tr.style.cursor = essayEditMode ? 'pointer' : 'default';
+            tr.title = essayEditMode ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : 
+                (currentLang === 'si' ? 'විවරණය, මාර්කින් සහ ඩිස්කෂන් බැලීමට Click කරන්න' : 'Click to view marking scheme & discussion');
+            
+            if (essayEditMode) {
+                tr.className = 'editable-row';
+            }
+            
+            if (!essayEditMode) {
+                tr.onclick = function() { showEssayPopupInMain(index); };
+            }
+            
+            let scoreParts = item.score.split('/').map(s => s.trim());
+            let currentScore = scoreParts[0] || '0';
+            let maxScore = scoreParts[1] || '15';
+            
             tr.innerHTML = `
                 <td><b>${item.question}</b></td>
-                <td>${item.score}</td>
+                <td>${essayEditMode ? 
+                    `<input type="text" class="score-edit-input" id="essayScore_${index}" value="${currentScore}" style="width:60px;" onchange="updateEssayScore(${index}, this.value)"> / ${maxScore}` : 
+                    item.score}
+                </td>
                 <td><span class="weakness-tag">${item.weakness}</span></td>
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    function updateEssayScore(index, value) {
+        const essayData = ESSAY_DATA[index];
+        const scoreParts = essayData.score.split('/').map(s => s.trim());
+        const maxScore = scoreParts[1] || '15';
+        const newScore = value.trim();
+        
+        if (newScore && !isNaN(newScore) && parseInt(newScore) >= 0) {
+            ESSAY_DATA[index].score = `${newScore} / ${maxScore}`;
+            saveAllData();
+            renderEssayTable();
+            showToast(translations[currentLang].scoreUpdated, 'success');
+        } else {
+            showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
+            renderEssayTable();
+        }
     }
 
     function renderDiscussions() {
@@ -3352,6 +3868,7 @@ sendToGoogleSheet("register", {
         renderStructuredTable();
         renderEssayTable();
         renderDiscussions();
+        updateEditModeUI();
     }
 
     // ===================================================
@@ -3413,6 +3930,9 @@ sendToGoogleSheet("register", {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closePopup();
         });
+        
+        // Override showToast to use the new toast system
+        window.showToast = showToast;
     });
 </script>
 
