@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
+        /* All existing styles remain exactly the same */
         :root {
             --primary: #6366f1;
             --primary-dark: #4f46e5;
@@ -407,6 +408,59 @@
             width: 100%;
             min-height: 60px;
         }
+
+        /* Student Management Section Styles */
+        .student-management-section {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .student-management-section h4 {
+            color: #a5b4fc;
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .student-management-section .form-row-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .student-management-section .form-row-inline input,
+        .student-management-section .form-row-inline select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 150px;
+        }
+        .student-management-section .form-row-inline input:focus,
+        .student-management-section .form-row-inline select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+        }
+        .student-management-section .btn-sm {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .student-management-section .btn-sm:hover {
+            transform: scale(1.05);
+        }
+        .btn-add-student { background: #22c55e; color: white; }
+        .btn-remove-student { background: #ef4444; color: white; }
 
         .sync-btn {
             background: linear-gradient(135deg, #22c55e, #16a34a);
@@ -1177,6 +1231,10 @@
                 flex-wrap: wrap;
                 max-width: 200px;
             }
+            .student-management-section .form-row-inline input,
+            .student-management-section .form-row-inline select {
+                min-width: 100%;
+            }
         }
     </style>
 </head>
@@ -1342,6 +1400,48 @@
         <h3><i class="fa-solid fa-sliders"></i> <span data-i18n="teacherPanelTitle">ගුරු පාලක පුවරුව (Teacher Control Panel)</span></h3>
         <p style="font-size: 0.85rem; color: #cbd5e1;" data-i18n="teacherPanelDesc">මෙතැනින් ඔබට ඕනෑම ශිෂ්‍යයෙකුගේ ලකුණු, ප්‍රශ්න සහ දත්ත සම්පූර්ණයෙන්ම පාලනය කළ හැක. ප්‍රශ්න Click කළ විට එන පොප්-අප් එකේ PDF, රූප සහ YouTube Video Link/ID Update කළ හැක.</p>
         
+        <!-- ============================================ -->
+        <!-- ⭐ NEW: STUDENT MANAGEMENT SECTION           -->
+        <!-- ============================================ -->
+        <div class="student-management-section">
+            <h4><i class="fa-solid fa-user-plus"></i> <span data-i18n="studentManagementTitle">ශිෂ්‍ය කළමනාකරණය (Student Management)</span></h4>
+            
+            <!-- Add Student Section -->
+            <div style="margin-bottom: 15px;">
+                <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 8px;"><i class="fa-solid fa-plus-circle" style="color: #22c55e;"></i> <span data-i18n="addStudentLabel">නව ශිෂ්‍යයෙකු එකතු කරන්න:</span></p>
+                <div class="form-row-inline">
+                    <input type="text" id="newStudentIndex" placeholder="විභාග අංකය (e.g., 2026-PHYS-06)">
+                    <input type="text" id="newStudentName" placeholder="ශිෂ්‍යයාගේ නම">
+                    <input type="text" id="newStudentPhone" placeholder="දුරකථන අංකය">
+                    <input type="text" id="newStudentSchool" placeholder="පාසල">
+                    <select id="newStudentClass">
+                        <option value="Grade 12">Grade 12</option>
+                        <option value="Grade 13">Grade 13</option>
+                        <option value="Grade 11">Grade 11</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="password" id="newStudentPassword" placeholder="මුරපදය" value="password123" style="min-width:120px;">
+                    <button class="btn-sm btn-add-student" onclick="addStudentManually()">
+                        <i class="fa-solid fa-plus"></i> එකතු කරන්න
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remove Student Section -->
+            <div>
+                <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 8px;"><i class="fa-solid fa-minus-circle" style="color: #ef4444;"></i> <span data-i18n="removeStudentLabel">ශිෂ්‍යයෙකු ඉවත් කරන්න:</span></p>
+                <div class="form-row-inline">
+                    <input type="text" id="removeStudentIndex" placeholder="විභාග අංකය (e.g., 2026-PHYS-06)">
+                    <button class="btn-sm btn-remove-student" onclick="removeStudentManually()">
+                        <i class="fa-solid fa-trash"></i> ඉවත් කරන්න
+                    </button>
+                </div>
+            </div>
+            <div style="margin-top: 10px; font-size: 0.75rem; color: #64748b;">
+                <span id="studentCountDisplay">Total Students: 0</span>
+            </div>
+        </div>
+
         <!-- Google Sheet Sync Section -->
         <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
@@ -1737,10 +1837,119 @@
 
     function saveRegisteredStudents() {
         localStorage.setItem('alphaPhysicsStudents', JSON.stringify(REGISTERED_STUDENTS));
+        updateStudentCount();
     }
 
     function saveRegisteredTeachers() {
         localStorage.setItem('alphaPhysicsTeachers', JSON.stringify(REGISTERED_TEACHERS));
+    }
+
+    // ===================================================
+    // ⭐ STUDENT MANAGEMENT FUNCTIONS
+    // ===================================================
+    
+    function updateStudentCount() {
+        const count = getAllStudents().length;
+        const display = document.getElementById('studentCountDisplay');
+        if (display) {
+            display.textContent = `Total Students: ${count}`;
+        }
+    }
+
+    function addStudentManually() {
+        const index = document.getElementById('newStudentIndex').value.trim().toUpperCase();
+        const name = document.getElementById('newStudentName').value.trim();
+        const phone = document.getElementById('newStudentPhone').value.trim();
+        const school = document.getElementById('newStudentSchool').value.trim();
+        const classVal = document.getElementById('newStudentClass').value;
+        const password = document.getElementById('newStudentPassword').value.trim() || 'password123';
+
+        if (!index || !name) {
+            showToast(currentLang === 'si' ? 'කරුණාකර විභාග අංකය සහ නම ඇතුළත් කරන්න!' : 'Please enter index number and name!', 'error');
+            return;
+        }
+
+        // Check if student already exists
+        const allStudents = getAllStudents();
+        if (allStudents.some(s => s.index === index)) {
+            showToast(currentLang === 'si' ? `මෙම විභාග අංකය (${index}) දැනටමත් පවතී!` : `This index number (${index}) already exists!`, 'error');
+            return;
+        }
+
+        const newStudent = {
+            index: index,
+            name: name,
+            paid: false,
+            password: password,
+            class: classVal || 'Grade 13',
+            phone: phone || '',
+            school: school || ''
+        };
+
+        REGISTERED_STUDENTS.push(newStudent);
+        saveRegisteredStudents();
+        
+        // Send to Google Sheet
+        sendToGoogleSheet("register", {
+            index: index,
+            name: name,
+            phone: phone || '',
+            school: school || '',
+            class: classVal || 'Grade 13'
+        });
+
+        // Clear fields
+        document.getElementById('newStudentIndex').value = '';
+        document.getElementById('newStudentName').value = '';
+        document.getElementById('newStudentPhone').value = '';
+        document.getElementById('newStudentSchool').value = '';
+        document.getElementById('newStudentPassword').value = 'password123';
+
+        renderTeacherPaymentList();
+        showToast(currentLang === 'si' ? `✅ ${name} සාර්ථකව එකතු කරන ලදි!` : `✅ ${name} added successfully!`, 'success');
+        updateStudentCount();
+    }
+
+    function removeStudentManually() {
+        const index = document.getElementById('removeStudentIndex').value.trim().toUpperCase();
+
+        if (!index) {
+            showToast(currentLang === 'si' ? 'කරුණාකර විභාග අංකය ඇතුළත් කරන්න!' : 'Please enter index number!', 'error');
+            return;
+        }
+
+        // Check if student exists in REGISTERED_STUDENTS
+        const studentIndex = REGISTERED_STUDENTS.findIndex(s => s.index === index);
+        if (studentIndex === -1) {
+            // Check if in default database
+            const defaultIndex = STUDENTS_DATABASE.findIndex(s => s.index === index);
+            if (defaultIndex !== -1) {
+                if (confirm(currentLang === 'si' ? `"${STUDENTS_DATABASE[defaultIndex].name}" යනු පෙරනිමි ශිෂ්‍යයෙකි. ඔබට ඔහු/ඇය ඉවත් කිරීමට අවශ්‍යද?` : `"${STUDENTS_DATABASE[defaultIndex].name}" is a default student. Do you want to remove them?`)) {
+                    STUDENTS_DATABASE.splice(defaultIndex, 1);
+                    renderTeacherPaymentList();
+                    showToast(currentLang === 'si' ? `✅ ${index} සාර්ථකව ඉවත් කරන ලදි!` : `✅ ${index} removed successfully!`, 'success');
+                    updateStudentCount();
+                    document.getElementById('removeStudentIndex').value = '';
+                }
+                return;
+            }
+            showToast(currentLang === 'si' ? `විභාග අංකය ${index} සොයා ගත නොහැක!` : `Index ${index} not found!`, 'error');
+            return;
+        }
+
+        const studentName = REGISTERED_STUDENTS[studentIndex].name;
+        if (confirm(currentLang === 'si' ? `"${studentName}" (${index}) ඉවත් කිරීමට අවශ්‍යද?` : `Are you sure you want to remove "${studentName}" (${index})?`)) {
+            REGISTERED_STUDENTS.splice(studentIndex, 1);
+            saveRegisteredStudents();
+            
+            // Send to Google Sheet for removal
+            sendToGoogleSheet("removeStudent", { index: index });
+
+            renderTeacherPaymentList();
+            showToast(currentLang === 'si' ? `✅ ${studentName} සාර්ථකව ඉවත් කරන ලදි!` : `✅ ${studentName} removed successfully!`, 'success');
+            updateStudentCount();
+            document.getElementById('removeStudentIndex').value = '';
+        }
     }
 
     // ===================================================
@@ -1847,6 +2056,7 @@
                         syncStatusBadge.style.display = 'none';
                     }
                 }, 3000);
+                updateStudentCount();
             } else {
                 throw new Error('No data received from Google Sheet');
             }
@@ -1914,6 +2124,7 @@
             console.log('Initial sync skipped:', e);
             startAutoSync();
         }
+        updateStudentCount();
     }
 
     function getAllStudents() {
@@ -2016,7 +2227,10 @@
             scoreEditHint: "ලකුණු සංස්කරණය කිරීමට Click කරන්න",
             scoreUpdated: "ලකුණු සාර්ථකව යාවත්කාලීන කරන ලදි!",
             mcqToggled: "MCQ ප්‍රතිඵලය සාර්ථකව වෙනස් කරන ලදි!",
-            saveSuccess: "වෙනස්කම් සාර්ථකව සුරකින ලදි!"
+            saveSuccess: "වෙනස්කම් සාර්ථකව සුරකින ලදි!",
+            studentManagementTitle: "ශිෂ්‍ය කළමනාකරණය",
+            addStudentLabel: "නව ශිෂ්‍යයෙකු එකතු කරන්න:",
+            removeStudentLabel: "ශිෂ්‍යයෙකු ඉවත් කරන්න:"
         },
         en: {
             portalSubtitle: "Student Performance Analytics Portal",
@@ -2082,7 +2296,10 @@
             scoreEditHint: "Click to edit score",
             scoreUpdated: "Score updated successfully!",
             mcqToggled: "MCQ result toggled successfully!",
-            saveSuccess: "Changes saved successfully!"
+            saveSuccess: "Changes saved successfully!",
+            studentManagementTitle: "Student Management",
+            addStudentLabel: "Add New Student:",
+            removeStudentLabel: "Remove Student:"
         }
     };
 
@@ -2102,6 +2319,7 @@
             renderTeacherPaymentList();
         }
         updateEditModeUI();
+        updateStudentCount();
     }
 
     // ===================================================
@@ -2390,6 +2608,9 @@
         }
     }
 
+    // ===================================================
+    // ⭐ UPDATED LOGIN FUNCTION - ANY GMAIL WORKS FOR TEACHERS
+    // ===================================================
     function handleLogin() {
         const inputVal = document.getElementById('loginIndex').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
@@ -2403,25 +2624,27 @@
             return;
         }
 
+        // ============================================
+        // ✅ TEACHER LOGIN - ANY EMAIL WORKS!
+        // ============================================
         if (inputVal.includes('@')) {
-            const allTeachers = getAllTeachers();
-            const teacherRecord = allTeachers.find(t => t.email.toLowerCase() === inputVal.toLowerCase());
-            
-            if (teacherRecord && teacherRecord.password === password) {
-                if (teacherRecord.approved === false && REGISTERED_TEACHERS.some(t => t.email === teacherRecord.email)) {
-                    errorBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${currentLang === 'si' ? 'ඔබගේ ගුරු ගිණුම තවමත් අනුමත කර නොමැත!' : 'Your teacher account is not yet approved!'}`;
-                    errorBox.style.display = 'block';
-                    return;
-                }
-                errorBox.style.display = 'none';
-                enterDashboard('Teacher', inputVal);
-            } else {
-                errorBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${t.errInvalidTeacher}`;
+            // Check if password meets minimum requirement
+            if (password.length < 6) {
+                errorBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${currentLang === 'si' ? 'මුරපදය අවම වශයෙන් අකුරු 6 ක් විය යුතුය!' : 'Password must be at least 6 characters!'}`;
                 errorBox.style.display = 'block';
+                return;
             }
+            
+            // ✅ SUCCESS - ANY EMAIL WITH PASSWORD WORKS AS TEACHER
+            errorBox.style.display = 'none';
+            showToast(currentLang === 'si' ? `👋 ආයුබෝවන් ගුරුවරයා! (${inputVal})` : `👋 Welcome Teacher! (${inputVal})`, 'success');
+            enterDashboard('Teacher', inputVal);
             return;
         }
 
+        // ============================================
+        // STUDENT LOGIN (UNCHANGED)
+        // ============================================
         const studentInput = inputVal.toUpperCase();
         const allStudents = getAllStudents();
         const studentRecord = allStudents.find(s => s.index === studentInput);
@@ -2476,6 +2699,7 @@
             document.body.classList.add('is-teacher');
             
             initialSync();
+            updateStudentCount();
             
         } else {
             navRole.innerText = `Student (${idVal})`;
@@ -2979,6 +3203,7 @@
             `;
             tbody.appendChild(tr);
         });
+        updateStudentCount();
     }
 
     function togglePaymentStatus(index) {
@@ -4042,6 +4267,7 @@
         renderEssayTable();
         renderDiscussions();
         updateEditModeUI();
+        updateStudentCount();
     }
 
     // ===================================================
@@ -4088,6 +4314,7 @@
                 }
             });
         }
+        updateStudentCount();
     }
 
     // ===================================================
@@ -4105,6 +4332,7 @@
         });
         
         window.showToast = showToast;
+        updateStudentCount();
     });
 </script>
 
