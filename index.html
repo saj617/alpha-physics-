@@ -717,6 +717,16 @@
         .btn-info { background: #06b6d4; color: white; }
         .btn-edit { background: #8b5cf6; color: white; }
 
+        /* Save button style */
+        .btn-save {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+        }
+        .btn-save:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
         .popup-overlay {
             display: none;
             position: fixed;
@@ -1124,6 +1134,32 @@
             display: inline-flex !important;
         }
 
+        /* Save button container */
+        .edit-save-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .edit-status-indicator {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid #f59e0b;
+            display: none;
+        }
+        .edit-status-indicator.show {
+            display: inline-block;
+        }
+        .edit-status-indicator.saved {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border-color: #22c55e;
+        }
+
         @media (max-width: 768px) {
             .dashboard-grid { grid-template-columns: 1fr; }
             .mcq-grid { grid-template-columns: repeat(5, 1fr); }
@@ -1447,9 +1483,15 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-list-check"></i> <span data-i18n="mcqTitle">MCQ ප්‍රශ්න විශ්ලේෂණය</span></h3>
-                    <button class="edit-mode-toggle teacher-edit-control" id="mcqEditToggle" onclick="toggleMCQEditMode()">
-                        <i class="fa-solid fa-pen"></i> <span id="mcqEditToggleText">Edit Mode</span>
-                    </button>
+                    <div class="edit-save-container">
+                        <button class="edit-mode-toggle teacher-edit-control" id="mcqEditToggle" onclick="toggleMCQEditMode()">
+                            <i class="fa-solid fa-pen"></i> <span id="mcqEditToggleText">Edit Mode</span>
+                        </button>
+                        <button class="btn-sm btn-save teacher-edit-control" id="mcqSaveBtn" onclick="saveMCQChanges()" style="display:none;">
+                            <i class="fa-solid fa-save"></i> Save Changes
+                        </button>
+                        <span class="edit-status-indicator" id="mcqEditStatus">Unsaved Changes</span>
+                    </div>
                 </div>
                 <p style="font-size: 0.85rem; color: #94a3b8;" data-i18n="mcqSubTitle">(ප්‍රශ්නය මත Click කර විවරණය, මාර්කින් සහ ඩිස්කෂන් බලන්න | ගුරුවරුන්ට PDF/Images/Video Link/ID Update කළ හැක)</p>
                 <div class="mcq-grid" id="mcqContainer"></div>
@@ -1460,9 +1502,15 @@
         <div class="card" style="margin-bottom: 25px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-file-pen"></i> <span data-i18n="structEssayTitle">ව්‍යුහගත රචනා (Structured Essay) - විශ්ලේෂණය</span></h3>
-                <button class="edit-mode-toggle teacher-edit-control" id="structEditToggle" onclick="toggleStructEditMode()">
-                    <i class="fa-solid fa-pen"></i> <span id="structEditToggleText">Edit Mode</span>
-                </button>
+                <div class="edit-save-container">
+                    <button class="edit-mode-toggle teacher-edit-control" id="structEditToggle" onclick="toggleStructEditMode()">
+                        <i class="fa-solid fa-pen"></i> <span id="structEditToggleText">Edit Mode</span>
+                    </button>
+                    <button class="btn-sm btn-save teacher-edit-control" id="structSaveBtn" onclick="saveStructChanges()" style="display:none;">
+                        <i class="fa-solid fa-save"></i> Save Changes
+                    </button>
+                    <span class="edit-status-indicator" id="structEditStatus">Unsaved Changes</span>
+                </div>
             </div>
             <p style="font-size: 0.85rem; color: #94a3b8;">💡 ප්‍රශ්නය මත Click කර විවරණය, මාර්කින් සහ ඩිස්කෂන් බලන්න | ගුරුවරුන්ට PDF/Images/Video Link/ID Update කළ හැක</p>
             <table class="sub-part-table" id="structuredTable">
@@ -1484,9 +1532,15 @@
         <div class="card" style="margin-bottom: 25px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-book-open"></i> <span data-i18n="essayTitle">රචනා ප්‍රශ්න (Essay Questions) විශ්ලේෂණය</span></h3>
-                <button class="edit-mode-toggle teacher-edit-control" id="essayEditToggle" onclick="toggleEssayEditMode()">
-                    <i class="fa-solid fa-pen"></i> <span id="essayEditToggleText">Edit Mode</span>
-                </button>
+                <div class="edit-save-container">
+                    <button class="edit-mode-toggle teacher-edit-control" id="essayEditToggle" onclick="toggleEssayEditMode()">
+                        <i class="fa-solid fa-pen"></i> <span id="essayEditToggleText">Edit Mode</span>
+                    </button>
+                    <button class="btn-sm btn-save teacher-edit-control" id="essaySaveBtn" onclick="saveEssayChanges()" style="display:none;">
+                        <i class="fa-solid fa-save"></i> Save Changes
+                    </button>
+                    <span class="edit-status-indicator" id="essayEditStatus">Unsaved Changes</span>
+                </div>
             </div>
             <p style="font-size: 0.85rem; color: #94a3b8;">💡 ප්‍රශ්නය මත Click කර විවරණය, මාර්කින් සහ ඩිස්කෂන් බලන්න | ගුරුවරුන්ට PDF/Images/Video Link/ID Update කළ හැක</p>
             <table class="sub-part-table" id="essayTable">
@@ -1588,6 +1642,11 @@
     let structEditMode = false;
     let essayEditMode = false;
     let isTeacher = false;
+
+    // Temporary edit data
+    let tempMCQResults = [];
+    let tempStructuredData = [];
+    let tempEssayData = [];
 
     // ===================================================
     // SAVE/LOAD FUNCTIONS
@@ -2049,7 +2108,6 @@
     // EDIT MODE UI UPDATE
     // ===================================================
     function updateEditModeUI() {
-        // Only show edit mode controls if user is a teacher
         const teacherControls = document.querySelectorAll('.teacher-edit-control');
         if (isTeacher) {
             teacherControls.forEach(el => el.style.display = 'inline-flex');
@@ -2066,36 +2124,115 @@
         document.getElementById('mcqEditToggle').classList.toggle('active', mcqEditMode);
         document.getElementById('structEditToggle').classList.toggle('active', structEditMode);
         document.getElementById('essayEditToggle').classList.toggle('active', essayEditMode);
+        
+        // Show/hide save buttons
+        document.getElementById('mcqSaveBtn').style.display = mcqEditMode && isTeacher ? 'inline-flex' : 'none';
+        document.getElementById('structSaveBtn').style.display = structEditMode && isTeacher ? 'inline-flex' : 'none';
+        document.getElementById('essaySaveBtn').style.display = essayEditMode && isTeacher ? 'inline-flex' : 'none';
+        
+        // Update status indicators
+        updateEditStatus();
+    }
+    
+    function updateEditStatus() {
+        const mcqStatus = document.getElementById('mcqEditStatus');
+        const structStatus = document.getElementById('structEditStatus');
+        const essayStatus = document.getElementById('essayEditStatus');
+        
+        // Check if there are unsaved changes
+        if (mcqEditMode && isTeacher) {
+            mcqStatus.textContent = '✏️ Editing...';
+            mcqStatus.className = 'edit-status-indicator show';
+        } else {
+            mcqStatus.className = 'edit-status-indicator';
+        }
+        
+        if (structEditMode && isTeacher) {
+            structStatus.textContent = '✏️ Editing...';
+            structStatus.className = 'edit-status-indicator show';
+        } else {
+            structStatus.className = 'edit-status-indicator';
+        }
+        
+        if (essayEditMode && isTeacher) {
+            essayStatus.textContent = '✏️ Editing...';
+            essayStatus.className = 'edit-status-indicator show';
+        } else {
+            essayStatus.className = 'edit-status-indicator';
+        }
     }
 
     function toggleMCQEditMode() {
         if (!isTeacher) return;
         mcqEditMode = !mcqEditMode;
+        if (mcqEditMode) {
+            // Create temp copy for editing
+            tempMCQResults = [...MCQ_RESULTS];
+        }
         updateEditModeUI();
         renderMCQGrid();
         if (mcqEditMode) {
-            showToast(currentLang === 'si' ? 'MCQ සංස්කරණ මාදිලිය සක්‍රියයි. ප්‍රතිඵලය වෙනස් කිරීමට MCQ අංකය මත Click කරන්න.' : 'MCQ Edit Mode enabled. Click any MCQ number to toggle result.', 'success');
+            showToast(currentLang === 'si' ? 'MCQ සංස්කරණ මාදිලිය සක්‍රියයි. වෙනස්කම් සුරැකීමට Save Changes ඔබන්න.' : 'MCQ Edit Mode enabled. Click Save Changes to save edits.', 'success');
         }
     }
 
     function toggleStructEditMode() {
         if (!isTeacher) return;
         structEditMode = !structEditMode;
+        if (structEditMode) {
+            tempStructuredData = JSON.parse(JSON.stringify(STRUCTURED_DATA));
+        }
         updateEditModeUI();
         renderStructuredTable();
         if (structEditMode) {
-            showToast(currentLang === 'si' ? 'ව්‍යුහගත ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. ලකුණු වෙනස් කිරීමට පේළිය මත Click කරන්න.' : 'Structured edit mode enabled. Click any row to edit score.', 'success');
+            showToast(currentLang === 'si' ? 'ව්‍යුහගත ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. වෙනස්කම් සුරැකීමට Save Changes ඔබන්න.' : 'Structured edit mode enabled. Click Save Changes to save edits.', 'success');
         }
     }
 
     function toggleEssayEditMode() {
         if (!isTeacher) return;
         essayEditMode = !essayEditMode;
+        if (essayEditMode) {
+            tempEssayData = JSON.parse(JSON.stringify(ESSAY_DATA));
+        }
         updateEditModeUI();
         renderEssayTable();
         if (essayEditMode) {
-            showToast(currentLang === 'si' ? 'රචනා ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. ලකුණු වෙනස් කිරීමට පේළිය මත Click කරන්න.' : 'Essay edit mode enabled. Click any row to edit score.', 'success');
+            showToast(currentLang === 'si' ? 'රචනා ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. වෙනස්කම් සුරැකීමට Save Changes ඔබන්න.' : 'Essay edit mode enabled. Click Save Changes to save edits.', 'success');
         }
+    }
+
+    // ===================================================
+    // SAVE FUNCTIONS FOR TEACHER EDITS
+    // ===================================================
+    function saveMCQChanges() {
+        if (!isTeacher || !mcqEditMode) return;
+        MCQ_RESULTS = [...tempMCQResults];
+        saveAllData();
+        mcqEditMode = false;
+        updateEditModeUI();
+        renderMCQGrid();
+        showToast(currentLang === 'si' ? 'MCQ වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'MCQ changes saved successfully!', 'success');
+    }
+
+    function saveStructChanges() {
+        if (!isTeacher || !structEditMode) return;
+        STRUCTURED_DATA = JSON.parse(JSON.stringify(tempStructuredData));
+        saveAllData();
+        structEditMode = false;
+        updateEditModeUI();
+        renderStructuredTable();
+        showToast(currentLang === 'si' ? 'ව්‍යුහගත වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'Structured changes saved successfully!', 'success');
+    }
+
+    function saveEssayChanges() {
+        if (!isTeacher || !essayEditMode) return;
+        ESSAY_DATA = JSON.parse(JSON.stringify(tempEssayData));
+        saveAllData();
+        essayEditMode = false;
+        updateEditModeUI();
+        renderEssayTable();
+        showToast(currentLang === 'si' ? 'රචනා වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'Essay changes saved successfully!', 'success');
     }
 
     // ===================================================
@@ -2333,7 +2470,6 @@
             renderAllContent();
             initDashboardElements();
             
-            // Show teacher edit controls
             document.querySelectorAll('.teacher-edit-control').forEach(el => {
                 el.style.display = 'inline-flex';
             });
@@ -2349,7 +2485,6 @@
             currentRole = 'student';
             loggedStudent = studentData;
             
-            // Hide teacher edit controls
             document.querySelectorAll('.teacher-edit-control').forEach(el => {
                 el.style.display = 'none';
             });
@@ -2400,12 +2535,10 @@
     function renderStudentDetail(student) {
         const container = document.getElementById('studentDetailContent');
         
-        // Create a copy of MCQ results for this student
         let studentMcqResults = [...MCQ_RESULTS];
         let studentStructuredData = JSON.parse(JSON.stringify(STRUCTURED_DATA));
         let studentEssayData = JSON.parse(JSON.stringify(ESSAY_DATA));
 
-        // Check if we have saved data for this student
         const savedStudentData = localStorage.getItem(`studentData_${student.index}`);
         if (savedStudentData) {
             try {
@@ -2416,7 +2549,6 @@
             } catch (e) {}
         }
 
-        // Check if teacher is viewing - show edit controls only for teachers
         const isTeacherViewing = isTeacher;
 
         container.innerHTML = `
@@ -2522,7 +2654,6 @@
             </div>
         `;
 
-        // Store student data for detail view
         window._detailStudentIndex = student.index;
         window._detailMcqResults = studentMcqResults;
         window._detailStructuredData = studentStructuredData;
@@ -2552,7 +2683,6 @@
             renderDetailStructuredTable(student.index);
             renderDetailEssayTable(student.index);
             
-            // Update edit mode UI for detail view - only for teachers
             if (isTeacherViewing) {
                 const detailMcqToggle = document.getElementById('detailMcqEditToggle');
                 if (detailMcqToggle) {
@@ -2651,11 +2781,9 @@
             item.onclick = function(e) {
                 e.stopPropagation();
                 if (editMode && isTeacherViewing) {
-                    // Toggle MCQ result
                     const newStatus = !mcqData[idx];
                     mcqData[idx] = newStatus;
                     window._detailMcqResults = mcqData;
-                    // Save student data
                     saveStudentDetailData(index);
                     renderDetailMCQGrid(index);
                     showToast(currentLang === 'si' ? `MCQ ${idx+1} ප්‍රතිඵලය ${newStatus ? 'නිවැරදි' : 'වැරදි'} ලෙස වෙනස් කරන ලදි!` : `MCQ ${idx+1} toggled to ${newStatus ? 'Correct' : 'Incorrect'}!`, 'success');
@@ -3685,7 +3813,11 @@
         const container = document.getElementById('mcqContainer');
         if (!container) return;
         container.innerHTML = '';
-        MCQ_RESULTS.forEach((status, index) => {
+        
+        // Use temp data if in edit mode, otherwise use original
+        const data = (mcqEditMode && isTeacher) ? tempMCQResults : MCQ_RESULTS;
+        
+        data.forEach((status, index) => {
             const item = document.createElement('div');
             item.className = `mcq-item ${status ? 'correct' : 'incorrect'}`;
             if (mcqEditMode && isTeacher) {
@@ -3697,11 +3829,9 @@
                 item.appendChild(editIndicator);
                 item.onclick = function(e) {
                     e.stopPropagation();
-                    MCQ_RESULTS[index] = !MCQ_RESULTS[index];
-                    saveAllData();
+                    tempMCQResults[index] = !tempMCQResults[index];
                     renderMCQGrid();
-                    updateMCQStatus();
-                    showToast(currentLang === 'si' ? `MCQ ${index+1} ප්‍රතිඵලය ${MCQ_RESULTS[index] ? 'නිවැරදි' : 'වැරදි'} ලෙස වෙනස් කරන ලදි!` : `MCQ ${index+1} toggled to ${MCQ_RESULTS[index] ? 'Correct' : 'Incorrect'}!`, 'success');
+                    showToast(currentLang === 'si' ? `MCQ ${index+1} ප්‍රතිඵලය ${tempMCQResults[index] ? 'නිවැරදි' : 'වැරදි'} ලෙස වෙනස් කරන ලදි! Save Changes ඔබන්න.` : `MCQ ${index+1} toggled to ${tempMCQResults[index] ? 'Correct' : 'Incorrect'}! Click Save Changes.`, 'success');
                 };
             } else {
                 item.title = currentLang === 'si' ? `MCQ ${index+1}: ${status ? 'නිවැරදි' : 'වැරදි'}\nClick to view marking scheme & discussion` : `MCQ ${index+1}: ${status ? 'Correct' : 'Incorrect'}\nClick to view marking scheme & discussion`;
@@ -3721,11 +3851,13 @@
         if (!tbody) return;
         tbody.innerHTML = '';
         
+        const data = (structEditMode && isTeacher) ? tempStructuredData : STRUCTURED_DATA;
+        
         let grouped = [];
         let currentGroup = [];
         
-        STRUCTURED_DATA.forEach((item, idx) => {
-            if (idx === 0 || item.question !== STRUCTURED_DATA[idx-1].question) {
+        data.forEach((item, idx) => {
+            if (idx === 0 || item.question !== data[idx-1].question) {
                 if (currentGroup.length > 0) grouped.push(currentGroup);
                 currentGroup = [{ ...item, index: idx }];
             } else {
@@ -3747,7 +3879,10 @@
                 }
                 
                 if (!structEditMode || !isTeacher) {
-                    tr.onclick = function() { showStructuredPopupInMain(item.index); };
+                    tr.onclick = function() { 
+                        const originalIndex = data.indexOf(item);
+                        showStructuredPopupInMain(originalIndex); 
+                    };
                 }
                 
                 if (idx === 0) {
@@ -3755,7 +3890,7 @@
                         <td rowspan="${rowspan}"><b>${item.question}</b></td>
                         <td>${item.subPart}</td>
                         <td>${(structEditMode && isTeacher) ? 
-                            `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateStructScore(${item.index}, this.value)">` : 
+                            `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateTempStructScore(${item.index}, this.value)">` : 
                             item.score}
                         </td>
                         <td>${item.maxScore}</td>
@@ -3765,7 +3900,7 @@
                     tr.innerHTML = `
                         <td>${item.subPart}</td>
                         <td>${(structEditMode && isTeacher) ? 
-                            `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateStructScore(${item.index}, this.value)">` : 
+                            `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateTempStructScore(${item.index}, this.value)">` : 
                             item.score}
                         </td>
                         <td>${item.maxScore}</td>
@@ -3777,15 +3912,14 @@
         });
     }
 
-    function updateStructScore(index, value) {
+    function updateTempStructScore(index, value) {
         const newScore = parseInt(value);
-        if (!isNaN(newScore) && newScore >= 0 && newScore <= STRUCTURED_DATA[index].maxScore) {
-            STRUCTURED_DATA[index].score = newScore;
-            saveAllData();
-            showToast(translations[currentLang].scoreUpdated, 'success');
+        if (!isNaN(newScore) && newScore >= 0 && newScore <= tempStructuredData[index].maxScore) {
+            tempStructuredData[index].score = newScore;
+            showToast(currentLang === 'si' ? 'ලකුණු යාවත්කාලීන කරන ලදි! Save Changes ඔබන්න.' : 'Score updated! Click Save Changes.', 'success');
         } else {
             showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
-            document.getElementById(`structScore_${index}`).value = STRUCTURED_DATA[index].score;
+            document.getElementById(`structScore_${index}`).value = tempStructuredData[index].score;
         }
     }
 
@@ -3793,7 +3927,10 @@
         const tbody = document.getElementById('essayBody');
         if (!tbody) return;
         tbody.innerHTML = '';
-        ESSAY_DATA.forEach((item, index) => {
+        
+        const data = (essayEditMode && isTeacher) ? tempEssayData : ESSAY_DATA;
+        
+        data.forEach((item, index) => {
             const tr = document.createElement('tr');
             tr.style.cursor = (essayEditMode && isTeacher) ? 'pointer' : 'default';
             tr.title = (essayEditMode && isTeacher) ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : 
@@ -3814,7 +3951,7 @@
             tr.innerHTML = `
                 <td><b>${item.question}</b></td>
                 <td>${(essayEditMode && isTeacher) ? 
-                    `<input type="text" class="score-edit-input" id="essayScore_${index}" value="${currentScore}" style="width:60px;" onchange="updateEssayScore(${index}, this.value)"> / ${maxScore}` : 
+                    `<input type="text" class="score-edit-input" id="essayScore_${index}" value="${currentScore}" style="width:60px;" onchange="updateTempEssayScore(${index}, this.value)"> / ${maxScore}` : 
                     item.score}
                 </td>
                 <td><span class="weakness-tag">${item.weakness}</span></td>
@@ -3823,17 +3960,16 @@
         });
     }
 
-    function updateEssayScore(index, value) {
-        const essayData = ESSAY_DATA[index];
+    function updateTempEssayScore(index, value) {
+        const essayData = tempEssayData[index];
         const scoreParts = essayData.score.split('/').map(s => s.trim());
         const maxScore = scoreParts[1] || '15';
         const newScore = value.trim();
         
         if (newScore && !isNaN(newScore) && parseInt(newScore) >= 0) {
-            ESSAY_DATA[index].score = `${newScore} / ${maxScore}`;
-            saveAllData();
+            tempEssayData[index].score = `${newScore} / ${maxScore}`;
             renderEssayTable();
-            showToast(translations[currentLang].scoreUpdated, 'success');
+            showToast(currentLang === 'si' ? 'ලකුණු යාවත්කාලීන කරන ලදි! Save Changes ඔබන්න.' : 'Score updated! Click Save Changes.', 'success');
         } else {
             showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
             renderEssayTable();
