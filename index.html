@@ -1576,7 +1576,7 @@
                 <h3><i class="fa-solid fa-chart-pie"></i> <span data-i18n="scoreAnalysisTitle">ලකුණු විශ්ලේෂණය (Overall)</span></h3>
                 <canvas id="scorePieChart"></canvas>
                 <div style="margin-top: 20px; text-align: center;">
-                    <h4 style="margin: 0; color: #a5b4fc;"><span data-i18n="totalScoreLabel">එකතුව:</span> <b style="font-size: 1.4rem; color: #38bdf8;">82.5%</b></h4>
+                    <h4 style="margin: 0; color: #a5b4fc;"><span data-i18n="totalScoreLabel">එකතුව:</span> <b style="font-size: 1.4rem; color: #38bdf8;" id="totalPercentageDisplay">82.5%</b></h4>
                 </div>
             </div>
 
@@ -1749,6 +1749,12 @@
     let tempEssayData = [];
 
     // ===================================================
+    // ⭐ GLOBAL CHART VARIABLES
+    // ===================================================
+    let mainScoreChart = null;
+    let detailScoreChart = null;
+
+    // ===================================================
     // SAVE/LOAD FUNCTIONS
     // ===================================================
     
@@ -1778,6 +1784,125 @@
             }
         }
         return false;
+    }
+
+    // ===================================================
+    // ⭐ PIE CHART UPDATE FUNCTIONS
+    // ===================================================
+    
+    function calculateMarks(mcqData, structData, essayData) {
+        // Calculate MCQ marks (out of 40)
+        const totalMCQ = mcqData.filter(r => r).length;
+        const totalMCQQuestions = mcqData.length;
+        const mcqMarks = totalMCQQuestions > 0 ? (totalMCQ / totalMCQQuestions) * 40 : 0;
+        
+        // Calculate Structured marks (out of 25)
+        const structTotal = structData.reduce((sum, item) => sum + item.score, 0);
+        const structMax = structData.reduce((sum, item) => sum + item.maxScore, 0);
+        const structMarks = structMax > 0 ? (structTotal / structMax) * 25 : 0;
+        
+        // Calculate Essay marks (out of 20)
+        let essayTotal = 0;
+        let essayMax = 0;
+        essayData.forEach(item => {
+            const parts = item.score.split('/').map(s => parseInt(s.trim()));
+            essayTotal += (parts[0] || 0);
+            essayMax += (parts[1] || 15);
+        });
+        const essayMarks = essayMax > 0 ? (essayTotal / essayMax) * 20 : 0;
+        
+        const totalMarks = mcqMarks + structMarks + essayMarks;
+        const lostMarks = Math.max(0, 100 - totalMarks);
+        
+        return {
+            mcq: Math.round(mcqMarks * 10) / 10,
+            structured: Math.round(structMarks * 10) / 10,
+            essay: Math.round(essayMarks * 10) / 10,
+            lost: Math.round(lostMarks * 10) / 10,
+            total: Math.round(totalMarks * 10) / 10
+        };
+    }
+
+    function updateMainScoreChart() {
+        const ctx = document.getElementById('scorePieChart');
+        if (!ctx) return;
+        
+        const marks = calculateMarks(MCQ_RESULTS, STRUCTURED_DATA, ESSAY_DATA);
+        const data = [marks.mcq, marks.structured, marks.essay, marks.lost];
+        
+        if (mainScoreChart) {
+            mainScoreChart.data.datasets[0].data = data;
+            mainScoreChart.update();
+        } else {
+            mainScoreChart = new Chart(ctx.getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['MCQ Marks', 'Structured Essay', 'Essay Marks', 'Lost Marks'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#6366f1', '#06b6d4', '#22c55e', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { color: '#cbd5e1' } 
+                        } 
+                    }
+                }
+            });
+        }
+        
+        // Update total percentage display
+        const totalDisplay = document.getElementById('totalPercentageDisplay');
+        if (totalDisplay) {
+            totalDisplay.textContent = marks.total + '%';
+        }
+    }
+
+    function updateDetailScoreChart() {
+        const ctx = document.getElementById('studentDetailPieChart');
+        if (!ctx) return;
+        
+        const mcqData = window._detailMcqResults || MCQ_RESULTS;
+        const structData = window._detailStructuredData || STRUCTURED_DATA;
+        const essayData = window._detailEssayData || ESSAY_DATA;
+        
+        const marks = calculateMarks(mcqData, structData, essayData);
+        const data = [marks.mcq, marks.structured, marks.essay, marks.lost];
+        
+        if (detailScoreChart) {
+            detailScoreChart.data.datasets[0].data = data;
+            detailScoreChart.update();
+        } else {
+            detailScoreChart = new Chart(ctx.getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['MCQ Marks', 'Structured Essay', 'Essay Marks', 'Lost Marks'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#6366f1', '#06b6d4', '#22c55e', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { color: '#cbd5e1' } 
+                        } 
+                    }
+                }
+            });
+        }
+        
+        // Update total percentage display in detail view
+        const totalDisplay = document.querySelector('#studentDetailPieChart')?.closest('.card')?.querySelector('h4 b');
+        if (totalDisplay) {
+            totalDisplay.textContent = marks.total + '%';
+        }
     }
 
     // ===================================================
@@ -2320,6 +2445,8 @@
         }
         updateEditModeUI();
         updateStudentCount();
+        // Update charts when UI changes
+        updateMainScoreChart();
     }
 
     // ===================================================
@@ -2430,6 +2557,8 @@
         mcqEditMode = false;
         updateEditModeUI();
         renderMCQGrid();
+        // ⭐ Update chart after saving MCQ changes
+        updateMainScoreChart();
         showToast(currentLang === 'si' ? 'MCQ වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'MCQ changes saved successfully!', 'success');
     }
 
@@ -2440,6 +2569,8 @@
         structEditMode = false;
         updateEditModeUI();
         renderStructuredTable();
+        // ⭐ Update chart after saving structured changes
+        updateMainScoreChart();
         showToast(currentLang === 'si' ? 'ව්‍යුහගත වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'Structured changes saved successfully!', 'success');
     }
 
@@ -2450,6 +2581,8 @@
         essayEditMode = false;
         updateEditModeUI();
         renderEssayTable();
+        // ⭐ Update chart after saving essay changes
+        updateMainScoreChart();
         showToast(currentLang === 'si' ? 'රචනා වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'Essay changes saved successfully!', 'success');
     }
 
@@ -2885,24 +3018,8 @@
         window._detailIsTeacher = isTeacherViewing;
 
         setTimeout(() => {
-            const ctx = document.getElementById('studentDetailPieChart');
-            if (ctx) {
-                new Chart(ctx.getContext('2d'), {
-                    type: 'pie',
-                    data: {
-                        labels: ['MCQ Marks', 'Structured Essay', 'Essay Marks', 'Lost Marks'],
-                        datasets: [{
-                            data: [40, 22.5, 20, 17.5],
-                            backgroundColor: ['#6366f1', '#06b6d4', '#22c55e', '#ef4444']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } }
-                    }
-                });
-            }
-
+            // ⭐ Update detail chart after render
+            updateDetailScoreChart();
             renderDetailMCQGrid(student.index);
             renderDetailStructuredTable(student.index);
             renderDetailEssayTable(student.index);
@@ -2940,6 +3057,8 @@
                 (currentLang === 'si' ? 'Edit Mode' : 'Edit Mode');
         }
         renderDetailMCQGrid(index);
+        // ⭐ Update detail chart after MCQ toggle
+        updateDetailScoreChart();
         if (window._detailMcqEditMode) {
             showToast(currentLang === 'si' ? 'MCQ සංස්කරණ මාදිලිය සක්‍රියයි. ප්‍රතිඵලය වෙනස් කිරීමට MCQ අංකය මත Click කරන්න.' : 'MCQ Edit Mode enabled. Click any MCQ number to toggle result.', 'success');
         }
@@ -2956,6 +3075,8 @@
                 (currentLang === 'si' ? 'Edit Mode' : 'Edit Mode');
         }
         renderDetailStructuredTable(index);
+        // ⭐ Update detail chart after structured edit
+        updateDetailScoreChart();
         if (window._detailStructEditMode) {
             showToast(currentLang === 'si' ? 'ව්‍යුහගත ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. ලකුණු වෙනස් කිරීමට පේළිය මත Click කරන්න.' : 'Structured edit mode enabled. Click any row to edit score.', 'success');
         }
@@ -2972,6 +3093,8 @@
                 (currentLang === 'si' ? 'Edit Mode' : 'Edit Mode');
         }
         renderDetailEssayTable(index);
+        // ⭐ Update detail chart after essay edit
+        updateDetailScoreChart();
         if (window._detailEssayEditMode) {
             showToast(currentLang === 'si' ? 'රචනා ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. ලකුණු වෙනස් කිරීමට පේළිය මත Click කරන්න.' : 'Essay edit mode enabled. Click any row to edit score.', 'success');
         }
@@ -3010,6 +3133,8 @@
                     window._detailMcqResults = mcqData;
                     saveStudentDetailData(index);
                     renderDetailMCQGrid(index);
+                    // ⭐ Update detail chart after MCQ toggle
+                    updateDetailScoreChart();
                     showToast(currentLang === 'si' ? `MCQ ${idx+1} ප්‍රතිඵලය ${newStatus ? 'නිවැරදි' : 'වැරදි'} ලෙස වෙනස් කරන ලදි!` : `MCQ ${idx+1} toggled to ${newStatus ? 'Correct' : 'Incorrect'}!`, 'success');
                 } else {
                     showMCQPopupInDetail(idx);
@@ -3062,6 +3187,8 @@
                             structData[idx].score = newScore;
                             window._detailStructuredData = structData;
                             saveStudentDetailData(index);
+                            // ⭐ Update detail chart after score change
+                            updateDetailScoreChart();
                             showToast(currentLang === 'si' ? 'ලකුණු සාර්ථකව යාවත්කාලීන කරන ලදි!' : 'Score updated successfully!', 'success');
                         } else {
                             input.value = item.score;
@@ -3124,6 +3251,8 @@
                             essayData[idx].score = `${newScore} / ${maxScore}`;
                             window._detailEssayData = essayData;
                             saveStudentDetailData(index);
+                            // ⭐ Update detail chart after score change
+                            updateDetailScoreChart();
                             showToast(currentLang === 'si' ? 'ලකුණු සාර්ථකව යාවත්කාලීන කරන ලදි!' : 'Score updated successfully!', 'success');
                         } else {
                             input.value = currentScore;
@@ -3268,6 +3397,8 @@
         renderMCQGrid();
         updateMCQStatus();
         document.getElementById('mcqCount').value = count;
+        // ⭐ Update chart after MCQ count change
+        updateMainScoreChart();
         showToast(currentLang === 'si' ? `MCQ ප්‍රශ්න ${count} ක් ලෙස යාවත්කාලීන කරන ලදි!` : `MCQ questions updated to ${count}!`, 'success');
     }
 
@@ -3277,6 +3408,8 @@
         renderMCQGrid();
         updateMCQStatus();
         document.getElementById('mcqCount').value = MCQ_RESULTS.length;
+        // ⭐ Update chart after adding MCQ
+        updateMainScoreChart();
         showToast(currentLang === 'si' ? 'නව MCQ ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New MCQ question added!', 'success');
     }
 
@@ -3290,6 +3423,8 @@
         renderMCQGrid();
         updateMCQStatus();
         document.getElementById('mcqCount').value = MCQ_RESULTS.length;
+        // ⭐ Update chart after removing MCQ
+        updateMainScoreChart();
         showToast(currentLang === 'si' ? 'අවසාන MCQ ප්‍රශ්නය ඉවත් කරන ලදි!' : 'Last MCQ question removed!', 'success');
     }
 
@@ -3299,6 +3434,8 @@
             saveAllData();
             renderMCQGrid();
             updateMCQStatus();
+            // ⭐ Update chart after reset
+            updateMainScoreChart();
             showToast(currentLang === 'si' ? 'සියලු MCQ ප්‍රතිඵල නැවත සකසන ලදි!' : 'All MCQ results reset!', 'success');
         }
     }
@@ -3333,6 +3470,8 @@
         document.getElementById('seScore').value = '';
         document.getElementById('seMaxScore').value = '';
         document.getElementById('seWeakness').value = '';
+        // ⭐ Update chart after adding structured question
+        updateMainScoreChart();
         showToast(currentLang === 'si' ? 'නව ව්‍යුහගත ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New structured question added!', 'success');
     }
 
@@ -3352,6 +3491,8 @@
         document.getElementById('eqTitle').value = '';
         document.getElementById('eqScore').value = '';
         document.getElementById('eqWeakness').value = '';
+        // ⭐ Update chart after adding essay question
+        updateMainScoreChart();
         showToast(currentLang === 'si' ? 'නව රචනා ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New essay question added!', 'success');
     }
 
@@ -4056,6 +4197,8 @@
                     e.stopPropagation();
                     tempMCQResults[index] = !tempMCQResults[index];
                     renderMCQGrid();
+                    // ⭐ Update chart after MCQ toggle in edit mode
+                    updateMainScoreChart();
                     showToast(currentLang === 'si' ? `MCQ ${index+1} ප්‍රතිඵලය ${tempMCQResults[index] ? 'නිවැරදි' : 'වැරදි'} ලෙස වෙනස් කරන ලදි! Save Changes ඔබන්න.` : `MCQ ${index+1} toggled to ${tempMCQResults[index] ? 'Correct' : 'Incorrect'}! Click Save Changes.`, 'success');
                 };
             } else {
@@ -4141,6 +4284,8 @@
         const newScore = parseInt(value);
         if (!isNaN(newScore) && newScore >= 0 && newScore <= tempStructuredData[index].maxScore) {
             tempStructuredData[index].score = newScore;
+            // ⭐ Update chart after temp score change
+            updateMainScoreChart();
             showToast(currentLang === 'si' ? 'ලකුණු යාවත්කාලීන කරන ලදි! Save Changes ඔබන්න.' : 'Score updated! Click Save Changes.', 'success');
         } else {
             showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
@@ -4194,6 +4339,8 @@
         if (newScore && !isNaN(newScore) && parseInt(newScore) >= 0) {
             tempEssayData[index].score = `${newScore} / ${maxScore}`;
             renderEssayTable();
+            // ⭐ Update chart after temp essay score change
+            updateMainScoreChart();
             showToast(currentLang === 'si' ? 'ලකුණු යාවත්කාලීන කරන ලදි! Save Changes ඔබන්න.' : 'Score updated! Click Save Changes.', 'success');
         } else {
             showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
@@ -4268,6 +4415,8 @@
         renderDiscussions();
         updateEditModeUI();
         updateStudentCount();
+        // ⭐ Update main chart after rendering all content
+        updateMainScoreChart();
     }
 
     // ===================================================
@@ -4297,23 +4446,8 @@
             if (Date.now() < end) { requestAnimationFrame(frame); }
         }());
 
-        const ctx = document.getElementById('scorePieChart');
-        if (ctx) {
-            new Chart(ctx.getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: ['MCQ Marks', 'Structured Essay', 'Essay Marks', 'Lost Marks'],
-                    datasets: [{
-                        data: [40, 22.5, 20, 17.5],
-                        backgroundColor: ['#6366f1', '#06b6d4', '#22c55e', '#ef4444']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } }
-                }
-            });
-        }
+        // ⭐ Initialize main chart
+        updateMainScoreChart();
         updateStudentCount();
     }
 
