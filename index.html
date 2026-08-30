@@ -13,7 +13,7 @@
     
     <style>
         /* ============================================
-           🎨 NEW - ENHANCED THEME & STYLES
+           🎨 ENHANCED THEME & STYLES
            ============================================ */
         
         /* ---- CSS Variables ---- */
@@ -1862,10 +1862,57 @@
             transform: scale(1.01);
         }
 
-        /* ============================================
-           🔧 ALL ORIGINAL STYLES REMAIN
-           (No functional changes)
-           ============================================ */
+        /* ---- Table Row Action Buttons ---- */
+        .row-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .btn-remove-row {
+            background: var(--danger);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-remove-row:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-add-row {
+            background: var(--success);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-add-row:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+        }
+
+        .table-edit-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -2210,10 +2257,13 @@
             </div>
         </div>
 
-        <!-- Question Management -->
+        <!-- ============================================
+             📝 QUESTION MANAGEMENT (UPDATED)
+             ============================================ -->
         <div class="question-manager" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px;">
             <h4 style="color: var(--secondary);"><i class="fa-solid fa-edit"></i> ප්‍රශ්න කළමනාකරණය (Question Management)</h4>
             
+            <!-- MCQ Section (Unchanged) -->
             <div style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 14px;">
                 <h5 style="color: var(--accent);"><i class="fa-solid fa-list-check"></i> MCQ ප්‍රශ්න</h5>
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
@@ -2226,30 +2276,65 @@
                 <div id="mcqStatus" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);"></div>
             </div>
 
+            <!-- ⭐ NEW: Structured Essay Table with Edit Controls -->
             <div style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 14px;">
                 <h5 style="color: var(--secondary);"><i class="fa-solid fa-file-pen"></i> ව්‍යුහගත රචනා (Structured Essay)</h5>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <input type="text" id="seQuestionTitle" placeholder="ප්‍රශ්නයේ නම" style="width: 200px;">
-                    <input type="text" id="seSubPart" placeholder="අනු කොටස" style="width: 150px;">
-                    <input type="number" id="seScore" placeholder="ලකුණු" style="width: 100px;">
-                    <input type="number" id="seMaxScore" placeholder="උපරිම ලකුණු" style="width: 100px;">
-                    <input type="text" id="seWeakness" placeholder="දුර්වලතා" style="width: 150px;">
-                    <button class="btn-sm btn-success" onclick="addStructuredQuestion()">+ Add</button>
+                <div class="table-edit-controls">
+                    <button class="btn-add-row" onclick="addStructuredRow()">
+                        <i class="fa-solid fa-plus"></i> Add Row
+                    </button>
+                    <button class="btn-sm btn-danger" onclick="deleteSelectedStructuredRow()" id="deleteStructBtn" style="display:none;">
+                        <i class="fa-solid fa-trash"></i> Delete Selected
+                    </button>
+                    <span style="font-size:0.75rem; color: var(--text-muted); margin-left:8px;">
+                        💡 Click any cell to edit | Select row checkbox to delete
+                    </span>
                 </div>
-                <div id="structuredStatus" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);"></div>
+                <table class="sub-part-table" id="structuredTable">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th data-i18n="thQuestion">ප්‍රශ්නය</th>
+                            <th data-i18n="thSubPart">අනු කොටස</th>
+                            <th data-i18n="thScore">ලබාගත් ලකුණු</th>
+                            <th data-i18n="thMaxScore">උපරිම ලකුණු</th>
+                            <th data-i18n="thWeakness">තවදුරටත් අධ්‍යයනය කළ යුතු කොටස්</th>
+                        </tr>
+                    </thead>
+                    <tbody id="structuredBody">
+                    </tbody>
+                </table>
             </div>
 
+            <!-- ⭐ NEW: Essay Table with Edit Controls -->
             <div style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 14px;">
                 <h5 style="color: var(--success);"><i class="fa-solid fa-book-open"></i> රචනා ප්‍රශ්න (Essay Questions)</h5>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <input type="text" id="eqTitle" placeholder="ප්‍රශ්නය" style="width: 200px;">
-                    <input type="text" id="eqScore" placeholder="ලකුණු (e.g. 12/15)" style="width: 120px;">
-                    <input type="text" id="eqWeakness" placeholder="දුර්වලතා" style="width: 200px;">
-                    <button class="btn-sm btn-success" onclick="addEssayQuestion()">+ Add</button>
+                <div class="table-edit-controls">
+                    <button class="btn-add-row" onclick="addEssayRow()">
+                        <i class="fa-solid fa-plus"></i> Add Row
+                    </button>
+                    <button class="btn-sm btn-danger" onclick="deleteSelectedEssayRow()" id="deleteEssayBtn" style="display:none;">
+                        <i class="fa-solid fa-trash"></i> Delete Selected
+                    </button>
+                    <span style="font-size:0.75rem; color: var(--text-muted); margin-left:8px;">
+                        💡 Click any cell to edit | Select row checkbox to delete
+                    </span>
                 </div>
-                <div id="essayStatus" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);"></div>
+                <table class="sub-part-table" id="essayTable">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th data-i18n="thQuestion">ප්‍රශ්නය</th>
+                            <th data-i18n="thScore">ලබාගත් ලකුණු</th>
+                            <th data-i18n="thWeakness">තවදුරටත් අධ්‍යයනය කළ යුතු කොටස්</th>
+                        </tr>
+                    </thead>
+                    <tbody id="essayBody">
+                    </tbody>
+                </table>
             </div>
 
+            <!-- Discussions Section (Unchanged) -->
             <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 14px;">
                 <h5 style="color: #a5b4fc;"><i class="fa-solid fa-circle-play"></i> විවරණ සහ Video Discussions</h5>
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
@@ -2333,7 +2418,7 @@
             </div>
         </div>
 
-        <!-- Structured Essay -->
+        <!-- ⭐ UPDATED: Structured Essay -->
         <div class="card" style="margin-bottom: 25px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-file-pen"></i> <span data-i18n="structEssayTitle">ව්‍යුහගත රචනා (Structured Essay) - විශ්ලේෂණය</span></h3>
@@ -2348,7 +2433,7 @@
                 </div>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-muted);">💡 ප්‍රශ්නය මත Click කර විවරණය, මාර්කින් සහ ඩිස්කෂන් බලන්න | ගුරුවරුන්ට PDF/Images/Video Link/ID Update කළ හැක</p>
-            <table class="sub-part-table" id="structuredTable">
+            <table class="sub-part-table" id="structuredViewTable">
                 <thead>
                     <tr>
                         <th data-i18n="thQuestion">ප්‍රශ්නය</th>
@@ -2358,12 +2443,12 @@
                         <th data-i18n="thWeakness">තවදුරටත් අධ්‍යයනය කළ යුතු කොටස්</th>
                     </tr>
                 </thead>
-                <tbody id="structuredBody">
+                <tbody id="structuredViewBody">
                 </tbody>
             </table>
         </div>
 
-        <!-- Essay Questions -->
+        <!-- ⭐ UPDATED: Essay Questions -->
         <div class="card" style="margin-bottom: 25px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-book-open"></i> <span data-i18n="essayTitle">රචනා ප්‍රශ්න (Essay Questions) විශ්ලේෂණය</span></h3>
@@ -2378,7 +2463,7 @@
                 </div>
             </div>
             <p style="font-size: 0.85rem; color: var(--text-muted);">💡 ප්‍රශ්නය මත Click කර විවරණය, මාර්කින් සහ ඩිස්කෂන් බලන්න | ගුරුවරුන්ට PDF/Images/Video Link/ID Update කළ හැක</p>
-            <table class="sub-part-table" id="essayTable">
+            <table class="sub-part-table" id="essayViewTable">
                 <thead>
                     <tr>
                         <th data-i18n="thQuestion">ප්‍රශ්නය</th>
@@ -2386,7 +2471,7 @@
                         <th data-i18n="thWeakness">දුර්වලතා සහ අධ්‍යයනය කළ යුතු කොටස්</th>
                     </tr>
                 </thead>
-                <tbody id="essayBody">
+                <tbody id="essayViewBody">
                 </tbody>
             </table>
         </div>
@@ -2440,7 +2525,7 @@
 
     // ================================================
     // 🔄 ALL ORIGINAL JAVASCRIPT BELOW
-    // (No changes made to functionality)
+    // (Only adding new functions for table editing)
     // ================================================
 
     // ⭐ PAPER LIST with custom names
@@ -2819,6 +2904,392 @@
         }
         updatePaperManagementUI();
     }
+
+    // ================================================
+    // ⭐ NEW FUNCTIONS FOR TABLE EDITING
+    // ================================================
+
+    // --- Structured Table Functions ---
+    function addStructuredRow() {
+        const structData = getCurrentStructured();
+        structData.push({
+            question: "නව ප්‍රශ්නය",
+            subPart: "අනු කොටස",
+            score: 0,
+            maxScore: 10,
+            weakness: "-"
+        });
+        if (currentPaperData) {
+            currentPaperData.structured = structData;
+            savePaperDataToLocalStorage();
+        }
+        renderStructuredTable();
+        renderStructuredViewTable();
+        updateMainScoreChart();
+        showToast(currentLang === 'si' ? 'නව පේළියක් එකතු කරන ලදි!' : 'New row added!', 'success');
+    }
+
+    function deleteSelectedStructuredRow() {
+        const checkboxes = document.querySelectorAll('#structuredBody input[type="checkbox"]:checked');
+        if (checkboxes.length === 0) {
+            showToast(currentLang === 'si' ? 'කරුණාකර මකා දැමීමට පේළියක් තෝරන්න!' : 'Please select a row to delete!', 'error');
+            return;
+        }
+        
+        if (!confirm(currentLang === 'si' ? 'තෝරාගත් පේළි මකා දැමීමට අවශ්‍යද?' : 'Delete selected rows?')) return;
+        
+        const structData = getCurrentStructured();
+        const indices = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index)).sort((a, b) => b - a);
+        
+        indices.forEach(idx => {
+            if (idx < structData.length) {
+                structData.splice(idx, 1);
+            }
+        });
+        
+        if (currentPaperData) {
+            currentPaperData.structured = structData;
+            savePaperDataToLocalStorage();
+        }
+        renderStructuredTable();
+        renderStructuredViewTable();
+        updateMainScoreChart();
+        document.getElementById('deleteStructBtn').style.display = 'none';
+        showToast(currentLang === 'si' ? 'තෝරාගත් පේළි මකා දමන ලදි!' : 'Selected rows deleted!', 'success');
+    }
+
+    // --- Essay Table Functions ---
+    function addEssayRow() {
+        const essayData = getCurrentEssay();
+        essayData.push({
+            question: "නව ප්‍රශ්නය",
+            score: "0 / 15",
+            weakness: "-"
+        });
+        if (currentPaperData) {
+            currentPaperData.essay = essayData;
+            savePaperDataToLocalStorage();
+        }
+        renderEssayTable();
+        renderEssayViewTable();
+        updateMainScoreChart();
+        showToast(currentLang === 'si' ? 'නව පේළියක් එකතු කරන ලදි!' : 'New row added!', 'success');
+    }
+
+    function deleteSelectedEssayRow() {
+        const checkboxes = document.querySelectorAll('#essayBody input[type="checkbox"]:checked');
+        if (checkboxes.length === 0) {
+            showToast(currentLang === 'si' ? 'කරුණාකර මකා දැමීමට පේළියක් තෝරන්න!' : 'Please select a row to delete!', 'error');
+            return;
+        }
+        
+        if (!confirm(currentLang === 'si' ? 'තෝරාගත් පේළි මකා දැමීමට අවශ්‍යද?' : 'Delete selected rows?')) return;
+        
+        const essayData = getCurrentEssay();
+        const indices = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index)).sort((a, b) => b - a);
+        
+        indices.forEach(idx => {
+            if (idx < essayData.length) {
+                essayData.splice(idx, 1);
+            }
+        });
+        
+        if (currentPaperData) {
+            currentPaperData.essay = essayData;
+            savePaperDataToLocalStorage();
+        }
+        renderEssayTable();
+        renderEssayViewTable();
+        updateMainScoreChart();
+        document.getElementById('deleteEssayBtn').style.display = 'none';
+        showToast(currentLang === 'si' ? 'තෝරාගත් පේළි මකා දමන ලදි!' : 'Selected rows deleted!', 'success');
+    }
+
+    // --- Toggle checkbox visibility based on edit mode ---
+    function updateStructuredCheckboxVisibility() {
+        const isEditMode = structEditMode && isTeacher;
+        const checkboxes = document.querySelectorAll('#structuredBody input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.style.display = isEditMode ? 'inline-block' : 'none';
+        });
+        document.getElementById('deleteStructBtn').style.display = isEditMode ? 'inline-flex' : 'none';
+        
+        // Also update view table
+        const viewCheckboxes = document.querySelectorAll('#structuredViewBody input[type="checkbox"]');
+        viewCheckboxes.forEach(cb => cb.style.display = 'none');
+    }
+
+    function updateEssayCheckboxVisibility() {
+        const isEditMode = essayEditMode && isTeacher;
+        const checkboxes = document.querySelectorAll('#essayBody input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.style.display = isEditMode ? 'inline-block' : 'none';
+        });
+        document.getElementById('deleteEssayBtn').style.display = isEditMode ? 'inline-flex' : 'none';
+        
+        const viewCheckboxes = document.querySelectorAll('#essayViewBody input[type="checkbox"]');
+        viewCheckboxes.forEach(cb => cb.style.display = 'none');
+    }
+
+    function toggleStructCheckbox(index) {
+        // This will be called when checkbox changes
+        const anyChecked = document.querySelectorAll('#structuredBody input[type="checkbox"]:checked').length > 0;
+        document.getElementById('deleteStructBtn').style.display = anyChecked ? 'inline-flex' : 'none';
+    }
+
+    function toggleEssayCheckbox(index) {
+        const anyChecked = document.querySelectorAll('#essayBody input[type="checkbox"]:checked').length > 0;
+        document.getElementById('deleteEssayBtn').style.display = anyChecked ? 'inline-flex' : 'none';
+    }
+
+    // ================================================
+    // RENDER FUNCTIONS (UPDATED)
+    // ================================================
+
+    function renderStructuredTable() {
+        const tbody = document.getElementById('structuredBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        
+        const data = (structEditMode && isTeacher) ? tempStructuredData : getCurrentStructured();
+        const isEditMode = structEditMode && isTeacher;
+        
+        data.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = isEditMode ? 'editable-row' : '';
+            tr.style.cursor = isEditMode ? 'default' : 'pointer';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.dataset.index = idx;
+            checkbox.style.display = isEditMode ? 'inline-block' : 'none';
+            checkbox.onchange = function() { toggleStructCheckbox(idx); };
+            
+            const tdCheck = document.createElement('td');
+            tdCheck.style.width = '30px';
+            tdCheck.appendChild(checkbox);
+            
+            const tdQuestion = document.createElement('td');
+            const tdSubPart = document.createElement('td');
+            const tdScore = document.createElement('td');
+            const tdMaxScore = document.createElement('td');
+            const tdWeakness = document.createElement('td');
+            
+            if (isEditMode) {
+                // Editable fields
+                tdQuestion.innerHTML = `<input type="text" class="score-edit-input" style="width:100%;" value="${item.question}" onchange="updateStructField(${idx}, 'question', this.value)">`;
+                tdSubPart.innerHTML = `<input type="text" class="score-edit-input" style="width:100%;" value="${item.subPart}" onchange="updateStructField(${idx}, 'subPart', this.value)">`;
+                tdScore.innerHTML = `<input type="number" class="score-edit-input" style="width:60px;" value="${item.score}" min="0" max="${item.maxScore}" onchange="updateStructField(${idx}, 'score', parseInt(this.value))">`;
+                tdMaxScore.innerHTML = `<input type="number" class="score-edit-input" style="width:60px;" value="${item.maxScore}" min="1" onchange="updateStructField(${idx}, 'maxScore', parseInt(this.value))">`;
+                tdWeakness.innerHTML = `<input type="text" class="score-edit-input" style="width:100%;" value="${item.weakness}" onchange="updateStructField(${idx}, 'weakness', this.value)">`;
+            } else {
+                tdQuestion.innerHTML = `<b>${item.question}</b>`;
+                tdSubPart.textContent = item.subPart;
+                tdScore.textContent = item.score;
+                tdMaxScore.textContent = item.maxScore;
+                tdWeakness.innerHTML = item.weakness === '-' ? '-' : `<span class="weakness-tag">${item.weakness}</span>`;
+                tr.onclick = function() { 
+                    const originalIndex = data.indexOf(item);
+                    showStructuredPopupInMain(originalIndex); 
+                };
+            }
+            
+            tr.appendChild(tdCheck);
+            tr.appendChild(tdQuestion);
+            tr.appendChild(tdSubPart);
+            tr.appendChild(tdScore);
+            tr.appendChild(tdMaxScore);
+            tr.appendChild(tdWeakness);
+            tbody.appendChild(tr);
+        });
+        
+        updateStructuredCheckboxVisibility();
+    }
+
+    function updateStructField(index, field, value) {
+        const structData = (structEditMode && isTeacher) ? tempStructuredData : getCurrentStructured();
+        if (index < structData.length) {
+            structData[index][field] = value;
+            // If in temp mode, update temp
+            if (structEditMode && isTeacher) {
+                tempStructuredData[index][field] = value;
+            }
+            updateMainScoreChart();
+        }
+    }
+
+    function renderStructuredViewTable() {
+        const tbody = document.getElementById('structuredViewBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        
+        const data = getCurrentStructured();
+        data.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = function() { showStructuredPopupInMain(idx); };
+            
+            tr.innerHTML = `
+                <td><b>${item.question}</b></td>
+                <td>${item.subPart}</td>
+                <td>${item.score}</td>
+                <td>${item.maxScore}</td>
+                <td>${item.weakness === '-' ? '-' : `<span class="weakness-tag">${item.weakness}</span>`}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderEssayTable() {
+        const tbody = document.getElementById('essayBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        
+        const data = (essayEditMode && isTeacher) ? tempEssayData : getCurrentEssay();
+        const isEditMode = essayEditMode && isTeacher;
+        
+        data.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = isEditMode ? 'editable-row' : '';
+            tr.style.cursor = isEditMode ? 'default' : 'pointer';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.dataset.index = idx;
+            checkbox.style.display = isEditMode ? 'inline-block' : 'none';
+            checkbox.onchange = function() { toggleEssayCheckbox(idx); };
+            
+            const tdCheck = document.createElement('td');
+            tdCheck.style.width = '30px';
+            tdCheck.appendChild(checkbox);
+            
+            const tdQuestion = document.createElement('td');
+            const tdScore = document.createElement('td');
+            const tdWeakness = document.createElement('td');
+            
+            if (isEditMode) {
+                tdQuestion.innerHTML = `<input type="text" class="score-edit-input" style="width:100%;" value="${item.question}" onchange="updateEssayField(${idx}, 'question', this.value)">`;
+                tdScore.innerHTML = `<input type="text" class="score-edit-input" style="width:80px;" value="${item.score}" onchange="updateEssayField(${idx}, 'score', this.value)">`;
+                tdWeakness.innerHTML = `<input type="text" class="score-edit-input" style="width:100%;" value="${item.weakness}" onchange="updateEssayField(${idx}, 'weakness', this.value)">`;
+            } else {
+                tdQuestion.innerHTML = `<b>${item.question}</b>`;
+                tdScore.textContent = item.score;
+                tdWeakness.innerHTML = `<span class="weakness-tag">${item.weakness}</span>`;
+                tr.onclick = function() { showEssayPopupInMain(idx); };
+            }
+            
+            tr.appendChild(tdCheck);
+            tr.appendChild(tdQuestion);
+            tr.appendChild(tdScore);
+            tr.appendChild(tdWeakness);
+            tbody.appendChild(tr);
+        });
+        
+        updateEssayCheckboxVisibility();
+    }
+
+    function updateEssayField(index, field, value) {
+        const essayData = (essayEditMode && isTeacher) ? tempEssayData : getCurrentEssay();
+        if (index < essayData.length) {
+            essayData[index][field] = value;
+            if (essayEditMode && isTeacher) {
+                tempEssayData[index][field] = value;
+            }
+            updateMainScoreChart();
+        }
+    }
+
+    function renderEssayViewTable() {
+        const tbody = document.getElementById('essayViewBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        
+        const data = getCurrentEssay();
+        data.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = function() { showEssayPopupInMain(idx); };
+            
+            tr.innerHTML = `
+                <td><b>${item.question}</b></td>
+                <td>${item.score}</td>
+                <td><span class="weakness-tag">${item.weakness}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ================================================
+    // OVERRIDE EXISTING FUNCTIONS
+    // ================================================
+
+    // Override renderAllContent to include new tables
+    const originalRenderAllContent = renderAllContent;
+    renderAllContent = function() {
+        originalRenderAllContent();
+        renderStructuredViewTable();
+        renderEssayViewTable();
+        updateStructuredCheckboxVisibility();
+        updateEssayCheckboxVisibility();
+    };
+
+    // Override renderStructuredTable and renderEssayTable to use new versions
+    // (Already overridden above)
+
+    // Override toggleStructEditMode to update checkbox visibility
+    const originalToggleStructEditMode = toggleStructEditMode;
+    toggleStructEditMode = function() {
+        originalToggleStructEditMode();
+        renderStructuredTable();
+        renderStructuredViewTable();
+        updateStructuredCheckboxVisibility();
+    };
+
+    const originalToggleEssayEditMode = toggleEssayEditMode;
+    toggleEssayEditMode = function() {
+        originalToggleEssayEditMode();
+        renderEssayTable();
+        renderEssayViewTable();
+        updateEssayCheckboxVisibility();
+    };
+
+    // Override saveStructChanges
+    const originalSaveStructChanges = saveStructChanges;
+    saveStructChanges = function() {
+        if (!isTeacher || !structEditMode) return;
+        if (currentPaperData) {
+            currentPaperData.structured = JSON.parse(JSON.stringify(tempStructuredData));
+            savePaperDataToLocalStorage();
+        }
+        structEditMode = false;
+        updateEditModeUI();
+        renderStructuredTable();
+        renderStructuredViewTable();
+        updateMainScoreChart();
+        updateStructuredCheckboxVisibility();
+        showToast(currentLang === 'si' ? 'ව්‍යුහගත වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'Structured changes saved successfully!', 'success');
+    };
+
+    // Override saveEssayChanges
+    const originalSaveEssayChanges = saveEssayChanges;
+    saveEssayChanges = function() {
+        if (!isTeacher || !essayEditMode) return;
+        if (currentPaperData) {
+            currentPaperData.essay = JSON.parse(JSON.stringify(tempEssayData));
+            savePaperDataToLocalStorage();
+        }
+        essayEditMode = false;
+        updateEditModeUI();
+        renderEssayTable();
+        renderEssayViewTable();
+        updateMainScoreChart();
+        updateEssayCheckboxVisibility();
+        showToast(currentLang === 'si' ? 'රචනා වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'Essay changes saved successfully!', 'success');
+    };
+
+    // ================================================
+    // CONTINUE ORIGINAL FUNCTIONS
+    // ================================================
 
     function calculateMarks(mcqData, structData, essayData) {
         const totalMCQ = mcqData.filter(r => r).length;
@@ -3538,6 +4009,8 @@
         }
         updateEditModeUI();
         renderStructuredTable();
+        renderStructuredViewTable();
+        updateStructuredCheckboxVisibility();
         if (structEditMode) {
             showToast(currentLang === 'si' ? 'ව්‍යුහගත ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. වෙනස්කම් සුරැකීමට Save Changes ඔබන්න.' : 'Structured edit mode enabled. Click Save Changes to save edits.', 'success');
         }
@@ -3551,6 +4024,8 @@
         }
         updateEditModeUI();
         renderEssayTable();
+        renderEssayViewTable();
+        updateEssayCheckboxVisibility();
         if (essayEditMode) {
             showToast(currentLang === 'si' ? 'රචනා ලකුණු සංස්කරණ මාදිලිය සක්‍රියයි. වෙනස්කම් සුරැකීමට Save Changes ඔබන්න.' : 'Essay edit mode enabled. Click Save Changes to save edits.', 'success');
         }
@@ -3567,32 +4042,6 @@
         renderMCQGrid();
         updateMainScoreChart();
         showToast(currentLang === 'si' ? 'MCQ වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'MCQ changes saved successfully!', 'success');
-    }
-
-    function saveStructChanges() {
-        if (!isTeacher || !structEditMode) return;
-        if (currentPaperData) {
-            currentPaperData.structured = JSON.parse(JSON.stringify(tempStructuredData));
-            savePaperDataToLocalStorage();
-        }
-        structEditMode = false;
-        updateEditModeUI();
-        renderStructuredTable();
-        updateMainScoreChart();
-        showToast(currentLang === 'si' ? 'ව්‍යුහගත වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'Structured changes saved successfully!', 'success');
-    }
-
-    function saveEssayChanges() {
-        if (!isTeacher || !essayEditMode) return;
-        if (currentPaperData) {
-            currentPaperData.essay = JSON.parse(JSON.stringify(tempEssayData));
-            savePaperDataToLocalStorage();
-        }
-        essayEditMode = false;
-        updateEditModeUI();
-        renderEssayTable();
-        updateMainScoreChart();
-        showToast(currentLang === 'si' ? 'රචනා වෙනස්කම් සාර්ථකව සුරකින ලදි!' : 'Essay changes saved successfully!', 'success');
     }
 
     let currentRole = 'student';
@@ -4444,58 +4893,6 @@
              <span style="color: var(--text-muted);">📊 Total: ${total}</span>`;
     }
 
-    function addStructuredQuestion() {
-        const question = document.getElementById('seQuestionTitle').value.trim();
-        const subPart = document.getElementById('seSubPart').value.trim();
-        const score = parseInt(document.getElementById('seScore').value);
-        const maxScore = parseInt(document.getElementById('seMaxScore').value);
-        const weakness = document.getElementById('seWeakness').value.trim() || '-';
-
-        if (!question || !subPart || isNaN(score) || isNaN(maxScore)) {
-            alert(currentLang === 'si' ? 'කරුණාකර සියලු ක්ෂේත්‍ර පුරවන්න!' : 'Please fill in all fields!');
-            return;
-        }
-
-        const structData = getCurrentStructured();
-        structData.push({ question, subPart, score, maxScore, weakness });
-        if (currentPaperData) {
-            currentPaperData.structured = structData;
-            savePaperDataToLocalStorage();
-        }
-        renderStructuredTable();
-        document.getElementById('seQuestionTitle').value = '';
-        document.getElementById('seSubPart').value = '';
-        document.getElementById('seScore').value = '';
-        document.getElementById('seMaxScore').value = '';
-        document.getElementById('seWeakness').value = '';
-        updateMainScoreChart();
-        showToast(currentLang === 'si' ? 'නව ව්‍යුහගත ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New structured question added!', 'success');
-    }
-
-    function addEssayQuestion() {
-        const question = document.getElementById('eqTitle').value.trim();
-        const score = document.getElementById('eqScore').value.trim();
-        const weakness = document.getElementById('eqWeakness').value.trim() || '-';
-
-        if (!question || !score) {
-            alert(currentLang === 'si' ? 'කරුණාකර ප්‍රශ්නය සහ ලකුණු ඇතුළත් කරන්න!' : 'Please enter question and score!');
-            return;
-        }
-
-        const essayData = getCurrentEssay();
-        essayData.push({ question, score, weakness });
-        if (currentPaperData) {
-            currentPaperData.essay = essayData;
-            savePaperDataToLocalStorage();
-        }
-        renderEssayTable();
-        document.getElementById('eqTitle').value = '';
-        document.getElementById('eqScore').value = '';
-        document.getElementById('eqWeakness').value = '';
-        updateMainScoreChart();
-        showToast(currentLang === 'si' ? 'නව රචනා ප්‍රශ්නයක් එකතු කරන ලදි!' : 'New essay question added!', 'success');
-    }
-
     function addDiscussion() {
         const title = document.getElementById('discTitle').value.trim();
         const question = document.getElementById('discQuestion').value.trim();
@@ -5238,139 +5635,6 @@
         updateMCQStatus();
     }
 
-    function renderStructuredTable() {
-        const tbody = document.getElementById('structuredBody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        
-        const data = (structEditMode && isTeacher) ? tempStructuredData : getCurrentStructured();
-        
-        let grouped = [];
-        let currentGroup = [];
-        
-        data.forEach((item, idx) => {
-            if (idx === 0 || item.question !== data[idx-1].question) {
-                if (currentGroup.length > 0) grouped.push(currentGroup);
-                currentGroup = [{ ...item, index: idx }];
-            } else {
-                currentGroup.push({ ...item, index: idx });
-            }
-        });
-        if (currentGroup.length > 0) grouped.push(currentGroup);
-
-        grouped.forEach(group => {
-            const rowspan = group.length;
-            group.forEach((item, idx) => {
-                const tr = document.createElement('tr');
-                tr.style.cursor = (structEditMode && isTeacher) ? 'pointer' : 'default';
-                tr.title = (structEditMode && isTeacher) ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : 
-                    (currentLang === 'si' ? 'විවරණය, මාර්කින් සහ ඩිස්කෂන් බැලීමට Click කරන්න' : 'Click to view marking scheme & discussion');
-                
-                if (structEditMode && isTeacher) {
-                    tr.className = 'editable-row';
-                }
-                
-                if (!structEditMode || !isTeacher) {
-                    tr.onclick = function() { 
-                        const originalIndex = data.indexOf(item);
-                        showStructuredPopupInMain(originalIndex); 
-                    };
-                }
-                
-                if (idx === 0) {
-                    tr.innerHTML = `
-                        <td rowspan="${rowspan}"><b>${item.question}</b></td>
-                        <td>${item.subPart}</td>
-                        <td>${(structEditMode && isTeacher) ? 
-                            `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateTempStructScore(${item.index}, this.value)">` : 
-                            item.score}
-                        </td>
-                        <td>${item.maxScore}</td>
-                        <td>${item.weakness === '-' ? '-' : `<span class="weakness-tag">${item.weakness}</span>`}</td>
-                    `;
-                } else {
-                    tr.innerHTML = `
-                        <td>${item.subPart}</td>
-                        <td>${(structEditMode && isTeacher) ? 
-                            `<input type="number" class="score-edit-input" id="structScore_${item.index}" value="${item.score}" min="0" max="${item.maxScore}" style="width:60px;" onchange="updateTempStructScore(${item.index}, this.value)">` : 
-                            item.score}
-                        </td>
-                        <td>${item.maxScore}</td>
-                        <td>${item.weakness === '-' ? '-' : `<span class="weakness-tag">${item.weakness}</span>`}</td>
-                    `;
-                }
-                tbody.appendChild(tr);
-            });
-        });
-    }
-
-    function updateTempStructScore(index, value) {
-        const newScore = parseInt(value);
-        const structData = getCurrentStructured();
-        if (!isNaN(newScore) && newScore >= 0 && newScore <= structData[index].maxScore) {
-            tempStructuredData[index].score = newScore;
-            updateMainScoreChart();
-            showToast(currentLang === 'si' ? 'ලකුණු යාවත්කාලීන කරන ලදි! Save Changes ඔබන්න.' : 'Score updated! Click Save Changes.', 'success');
-        } else {
-            showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
-            document.getElementById(`structScore_${index}`).value = structData[index].score;
-        }
-    }
-
-    function renderEssayTable() {
-        const tbody = document.getElementById('essayBody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        
-        const data = (essayEditMode && isTeacher) ? tempEssayData : getCurrentEssay();
-        
-        data.forEach((item, index) => {
-            const tr = document.createElement('tr');
-            tr.style.cursor = (essayEditMode && isTeacher) ? 'pointer' : 'default';
-            tr.title = (essayEditMode && isTeacher) ? (currentLang === 'si' ? 'ලකුණු සංස්කරණය කිරීමට Click කරන්න' : 'Click to edit score') : 
-                (currentLang === 'si' ? 'විවරණය, මාර්කින් සහ ඩිස්කෂන් බැලීමට Click කරන්න' : 'Click to view marking scheme & discussion');
-            
-            if (essayEditMode && isTeacher) {
-                tr.className = 'editable-row';
-            }
-            
-            if (!essayEditMode || !isTeacher) {
-                tr.onclick = function() { showEssayPopupInMain(index); };
-            }
-            
-            let scoreParts = item.score.split('/').map(s => s.trim());
-            let currentScore = scoreParts[0] || '0';
-            let maxScore = scoreParts[1] || '15';
-            
-            tr.innerHTML = `
-                <td><b>${item.question}</b></td>
-                <td>${(essayEditMode && isTeacher) ? 
-                    `<input type="text" class="score-edit-input" id="essayScore_${index}" value="${currentScore}" style="width:60px;" onchange="updateTempEssayScore(${index}, this.value)"> / ${maxScore}` : 
-                    item.score}
-                </td>
-                <td><span class="weakness-tag">${item.weakness}</span></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function updateTempEssayScore(index, value) {
-        const essayData = tempEssayData;
-        const scoreParts = essayData[index].score.split('/').map(s => s.trim());
-        const maxScore = scoreParts[1] || '15';
-        const newScore = value.trim();
-        
-        if (newScore && !isNaN(newScore) && parseInt(newScore) >= 0) {
-            tempEssayData[index].score = `${newScore} / ${maxScore}`;
-            renderEssayTable();
-            updateMainScoreChart();
-            showToast(currentLang === 'si' ? 'ලකුණු යාවත්කාලීන කරන ලදි! Save Changes ඔබන්න.' : 'Score updated! Click Save Changes.', 'success');
-        } else {
-            showToast(currentLang === 'si' ? 'වලංගු ලකුණු අගයක් ඇතුළත් කරන්න!' : 'Please enter a valid score!', 'error');
-            renderEssayTable();
-        }
-    }
-
     function renderDiscussions() {
         const container = document.getElementById('discussionAccordionContainer');
         if (!container) return;
@@ -5434,12 +5698,16 @@
     function renderAllContent() {
         renderMCQGrid();
         renderStructuredTable();
+        renderStructuredViewTable();
         renderEssayTable();
+        renderEssayViewTable();
         renderDiscussions();
         updateEditModeUI();
         updateStudentCount();
         updateMainScoreChart();
         updatePaperManagementUI();
+        updateStructuredCheckboxVisibility();
+        updateEssayCheckboxVisibility();
     }
 
     function showSuccess(message) {
